@@ -1,0 +1,5 @@
+{
+    "message": "User registered successfully!",
+    "username": "galaxy_explorer_1",
+    "apiKey": "da25f85c-850f-4b85-b1df-c080a4386dc0"
+}
