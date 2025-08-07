@@ -49,7 +49,7 @@ export function generateMoons(starId, planetName, planetId, planetType) {
             moonType,
             moonSize: parseFloat(moonSize),
             moonConditions: getRandomConditions(),
-            moonSettlements: isNamed ? generateMoonSettlements(name) : [],
+            moonSettlements: isNamed ? generateMoonSettlements(moonName) : [],
         };
 
         // console.log('[PlanetUtils] Generated moon ' + moon.type + '  for planet ' + planetName);

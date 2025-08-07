@@ -3,6 +3,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { assignFaction } from './factionUtils.js';
 import { generateStarName, getStarDescription } from './starUtils.js';
+import { synthesizeStarSystem } from './synthesisUtils.js';
 
 // Star classification schema (moved here for reuse)
 export const STAR_CLASSES = [
