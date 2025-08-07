@@ -1,32 +1,26 @@
-// server.js
-
-// --- ADD THIS AT THE VERY TOP ---
+// Load environment variables. This should be the very first thing.
 import dotenv from 'dotenv';
 dotenv.config();
-// ------------------------------------
 
+// Import dependencies
 import cors from 'cors';
 import express from 'express';
-import mongoose from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
+import connectDB from './config/db.js';
+import StarSystem from './models/starSystem.js';
 
-// --- Import your models and middleware ---
+// Import your models, routes, and middleware
 import authMiddleware from './middleware/auth.js';
 import { usersModel } from './models/users.js';
-import { generateCompleteStarSystem } from './utils/systemUtils.js'; // Adjust the import path as necessary
+import { generateCompleteStarSystem } from './utils/systemUtils.js';
 
+// --- Initialize Express App & Database Connection ---
 const app = express();
+connectDB(); // Connect to MongoDB using your modular function
+
+// --- Core Middleware ---
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Middleware to parse JSON bodies
 
-// --- MongoDB Connection ---
-// The MONGODB_URI variable will now be correctly populated from your .env file.
-const MONGODB_URI = process.env.MONGODB_URI;
-console.log('Connecting to MongoDB with URI:', MONGODB_URI);
-
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('✅ MongoDB connected successfully!'))
-    .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // --- API Endpoints ---
 app.get('/api/about', (req, res) => {
@@ -68,45 +62,55 @@ app.get('/api/protected_data', authMiddleware.checkKey, (req, res) => {
     res.status(200).json({ message: 'You accessed protected data!', data: 'This is top-secret galaxy information.' });
 });
 
+app.get('/api/generate1000StarSystems', authMiddleware.checkKey, async (req, res) => {
+    try {
+        console.log("Starting generation of 1000 star systems...");
+
+        const systemsToSave = [];
+
+        // 1. Generate 1000 systems and add them to an array
+        for (let i = 0; i < 1000; i++) {
+            const fullSystem = generateCompleteStarSystem();
+            if (fullSystem) {
+                systemsToSave.push(fullSystem);
+            }
+        }
+
+        if (systemsToSave.length === 0) {
+            return res.status(500).json({ error: 'Failed to generate any systems.' });
+        }
+
+        // 2. Use insertMany() to save all systems in a single database operation
+        await StarSystem.insertMany(systemsToSave);
+
+        console.log(`Successfully generated and saved ${systemsToSave.length} star systems.`);
+
+        // 3. Respond with a success message
+        res.status(201).json({
+            message: `Successfully generated and saved ${systemsToSave.length} star systems.`
+        });
+
+    } catch (error) {
+        console.error('Error during bulk star system generation:', error);
+        res.status(500).json({ error: 'Internal server error during bulk generation.' });
+    }
+});
+
 app.get('/api/generateStarSystem', authMiddleware.checkKey, async (req, res) => {
     try {
-        // Here's a sample star system object, which you would replace with the
-        // output of your synthesizeStarSystem function once it's imported.
-        // const sampleStarSystem = {
-        //     starId: "f0d7b05e-5e3e-4d8b-9e0c-8c0c8b05e3e3",
-        //     starName: "Orion's Belt",
-        //     planets: [
-        //         {
-        //             planetId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-        //             planetName: "Betelgeuse Prime",
-        //             planetColor: "#FF8C00",
-        //             planetSize: 15,
-        //             moons: []
-        //         },
-        //         {
-        //             planetId: "b2c3d4e5-f6a7-8901-2345-67890abcdeff",
-        //             planetName: "Rigel Minor",
-        //             planetColor: "#87CEFA",
-        //             planetSize: 8,
-        //             moons: [
-        //                 {
-        //                     moonId: "c3d4e5f6-a7b8-9012-3456-7890abcdefff",
-        //                     moonName: "Orion's Tear",
-        //                     moonColor: "#D3D3D3",
-        //                     moonSize: 3
-        //                 }
-        //             ]
-        //         }
-        //     ]
-        // };
-        const fullSystem = generateCompleteStarSystem();
-        //This is where you would eventually call your synthesis function:
-        //const fullSystem = synthesizeStarSystem(req.query.seed || 'some_default_seed');
-        console.log('Generated Star System:', fullSystem);
 
-        res.status(200).json(fullSystem);
+        //--- Generate a complete star system using the utility function.
+        const fullSystem = generateCompleteStarSystem();
+
+        //--- Save the generated star system to MongoDB
+        const systemToSave = new StarSystem(fullSystem);
+        const savedSystem = await systemToSave.save();
+
+        //--- Respond with the saved star system data.
+        res.status(201).json({ result: 'System created and saved.' });
+
     } catch (error) {
-        console.error('Error in /api/generate_star_system:', error);
+        console.error('Error while generating star system:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
