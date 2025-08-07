@@ -11,6 +11,7 @@ import StarSystem from './models/StarSystem.js';
 // Import your models, routes, and middleware
 import authMiddleware from './middleware/auth.js';
 import { usersModel } from './models/users.js';
+import { generateStarsForSector } from './utils/sectorUtils.js';
 import { generateCompleteStarSystem } from './utils/systemUtils.js';
 
 // --- Initialize Express App & Database Connection ---
@@ -21,6 +22,17 @@ connectDB(); // Connect to MongoDB using your modular function
 app.use(cors());
 app.use(express.json()); // Middleware to parse JSON bodies
 
+const createSeed = (str1, str2) => {
+    // This is a basic way to create a numeric seed. More complex hashing can also be used.
+    const combined = str1 + ',' + str2;
+    let hash = 0;
+    for (let i = 0; i < combined.length; i++) {
+        const char = combined.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+};
 
 // --- API Endpoints ---
 app.get('/api/about', (req, res) => {
@@ -60,6 +72,20 @@ app.post('/api/register', async (req, res) => {
 
 app.get('/api/protected_data', authMiddleware.checkKey, (req, res) => {
     res.status(200).json({ message: 'You accessed protected data!', data: 'This is top-secret galaxy information.' });
+});
+
+app.get('/api/generateStars', authMiddleware.checkKey, async (req, res) => {
+
+    const { sectorX, sectorY } = req.query;
+
+    if (sectorX === undefined || sectorY === undefined) {
+        return res.status(400).json({ error: 'Sector coordinates (sectorX, sectorY) are required.' });
+    }
+
+    // Call the dedicated function to get the stars for this sector
+    const stars = generateStarsForSector(sectorX, sectorY);
+
+    res.status(200).json(stars);
 });
 
 app.get('/api/generate10000StarSystems', authMiddleware.checkKey, async (req, res) => {
