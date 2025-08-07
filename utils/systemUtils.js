@@ -1,11 +1,8 @@
-// utils/systemUtils.js
-
 import { v4 as uuidv4 } from 'uuid';
 import { assignFaction } from './factionUtils.js';
 import { generateStarName, getStarDescription } from './starUtils.js';
 import { synthesizeStarSystem } from './synthesisUtils.js';
 
-// Star classification schema (moved here for reuse)
 export const STAR_CLASSES = [
     { type: 'O', color: '#A3BFFA', temp: '>30,000K', size: 10, weight: 0.05 },
     { type: 'B', color: '#BEE3F8', temp: '10,000–30,000K', size: 8, weight: 0.1 },
@@ -16,8 +13,11 @@ export const STAR_CLASSES = [
     { type: 'M', color: '#F56565', temp: '<3,700K', size: 3, weight: 0.4 },
 ];
 
-//--- This creates the star systems as we move about the galactic map.
-export const generateStarSystem = (index = 0) => {
+/**
+ * RENAMED: This is the correct function for creating bare-bones star data.
+ * Your other files, like sectorUtils.js, should import this.
+ */
+export const createStarData = () => {
     const rand = Math.random();
     let cumulative = 0;
     let starClass = STAR_CLASSES[STAR_CLASSES.length - 1];
@@ -34,8 +34,7 @@ export const generateStarSystem = (index = 0) => {
     const faction = assignFaction({ name });
 
     return {
-        //id: `system-${index}`,
-        id: uuidv4(), // 👈 Unique GUID here
+        id: uuidv4(),
         name,
         type: starClass.type,
         color: starClass.color,
@@ -43,36 +42,18 @@ export const generateStarSystem = (index = 0) => {
         size: starClass.size,
         description: getStarDescription(starClass.type),
         faction,
-        x: Math.random() * 1200 - 600,
-        y: Math.random() * 800 - 400,
-        //planets: generatePlanets(name),
+        x: 0, // Coordinates are assigned later in sectorUtils.js
+        y: 0,
     };
 };
 
-// Generate a full star field (with centering and optional count)
-export const generateStarField = (count = 20) => {
-    const stars = [];
-    for (let i = 0; i < count; i++) {
-        stars.push(generateStarSystem(i));
-    }
-
-    const centerX = stars.reduce((sum, s) => sum + s.x, 0) / stars.length;
-    const centerY = stars.reduce((sum, s) => sum + s.y, 0) / stars.length;
-
-    return stars.map(s => ({
-        ...s,
-        x: s.x - centerX,
-        y: s.y - centerY,
-    }));
-};
-
-
+// This function correctly uses the renamed createStarData function now.
 export const generateCompleteStarSystem = () => {
     // 1. Create a basic star object with core properties
-    const basicStar = generateStarSystem();
+    const basicStar = createStarData();
 
     // 2. Pass the basic star to the synthesizer to generate planets, stations, etc.
     const fullSystem = synthesizeStarSystem(basicStar);
 
     return fullSystem;
-}
+};
