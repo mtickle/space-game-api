@@ -1,0 +1,5 @@
+{
+  "watch": ["."],
+  "ext": "js,jsx",
+  "exec": "node --loader @babel/register server.js"
+}

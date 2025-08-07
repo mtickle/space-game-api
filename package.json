@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "nodemon"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +27,12 @@
   },
   "homepage": "https://github.com/mtickle/space-game-api#readme",
   "devDependencies": {
+    "@babel/cli": "^7.28.0",
+    "@babel/core": "^7.28.0",
+    "@babel/node": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/register": "^7.27.1",
     "nodemon": "^3.1.10"
   }
 }

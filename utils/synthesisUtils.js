@@ -1,17 +1,17 @@
-import { generateAtmosphere } from '@utils/atmosphereUtils';
-import { generateConditions } from '@utils/conditionUtils';
-import { generateEconomy } from '@utils/economyUtils';
-import { generateFaction } from '@utils/factionUtils';
-import { generateFauna } from '@utils/faunaUtils';
-import { generateFlora } from '@utils/floraUtils';
-import { generateIndustry } from '@utils/industryUtils';
-import { generateMineral } from '@utils/mineralUtils';
-import { generateMoons } from '@utils/moonUtils';
-import { planetTypes, settlementNames, uniquePlanetNames } from '@utils/namingUtils';
-import { generateStation } from './stationUtils';
-//import { generatePlanetName } from '@utils/planetUtils';
-import { generateFullStarProfile } from '@utils/starUtils';
+import { generateAtmosphere } from './atmosphereUtils.js';
+import { generateConditions } from './conditionUtils.js';
+import { generateEconomy } from './economyUtils.js';
+import { generateFaction } from './factionUtils.js';
+import { generateFauna } from './faunaUtils.js';
+import { generateFlora } from './floraUtils.js';
+import { generateIndustry } from './industryUtils.js';
+import { generateMineral } from './mineralUtils.js';
+import { generateMoons } from './moonUtils.js';
+import { planetTypes, settlementNames, uniquePlanetNames } from './namingUtils.js';
+import { generateStation } from './stationUtils.js';
+//import { generatePlanetName } from './planetUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { generateFullStarProfile } from './starUtils.js';
 
 const generatePlanetName = (starName, index, uniqueNames) => {
     if (uniqueNames && uniqueNames.length > 0 && Math.random() < 0.4) { // 40% chance for a unique name

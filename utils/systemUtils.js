@@ -1,8 +1,8 @@
 // utils/systemUtils.js
 
-import { assignFaction } from '@utils/factionUtils';
-import { generateStarName, getStarDescription } from '@utils/starUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { assignFaction } from './factionUtils.js';
+import { generateStarName, getStarDescription } from './starUtils.js';
 
 // Star classification schema (moved here for reuse)
 export const STAR_CLASSES = [
@@ -64,3 +64,14 @@ export const generateStarField = (count = 20) => {
         y: s.y - centerY,
     }));
 };
+
+
+export const generateCompleteStarSystem = () => {
+    // 1. Create a basic star object with core properties
+    const basicStar = generateStarSystem();
+
+    // 2. Pass the basic star to the synthesizer to generate planets, stations, etc.
+    const fullSystem = synthesizeStarSystem(basicStar);
+
+    return fullSystem;
+}

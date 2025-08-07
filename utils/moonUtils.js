@@ -1,7 +1,7 @@
 
-import { getRandomConditions } from '@utils/conditionUtils';
-import { uniquePlanetNames } from '@utils/namingUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { getRandomConditions } from './conditionUtils.js';
+import { uniquePlanetNames } from './namingUtils.js';
 
 
 
