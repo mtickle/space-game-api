@@ -6,7 +6,7 @@ dotenv.config();
 import cors from 'cors';
 import express from 'express';
 import connectDB from './config/db.js';
-import StarSystem from './models/starSystem.js';
+import StarSystem from './models/StarSystem.js';
 
 // Import your models, routes, and middleware
 import authMiddleware from './middleware/auth.js';
@@ -62,14 +62,14 @@ app.get('/api/protected_data', authMiddleware.checkKey, (req, res) => {
     res.status(200).json({ message: 'You accessed protected data!', data: 'This is top-secret galaxy information.' });
 });
 
-app.get('/api/generate1000StarSystems', authMiddleware.checkKey, async (req, res) => {
+app.get('/api/generate10000StarSystems', authMiddleware.checkKey, async (req, res) => {
     try {
         console.log("Starting generation of 1000 star systems...");
 
         const systemsToSave = [];
 
         // 1. Generate 1000 systems and add them to an array
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 10000; i++) {
             const fullSystem = generateCompleteStarSystem();
             if (fullSystem) {
                 systemsToSave.push(fullSystem);
