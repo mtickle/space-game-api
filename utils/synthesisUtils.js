@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { generateAtmosphere } from './atmosphereUtils.js';
 import { generateConditions } from './conditionUtils.js';
 import { generateEconomy } from './economyUtils.js';
@@ -8,10 +9,8 @@ import { generateIndustry } from './industryUtils.js';
 import { generateMineral } from './mineralUtils.js';
 import { generateMoons } from './moonUtils.js';
 import { planetTypes, settlementNames, uniquePlanetNames } from './namingUtils.js';
-import { generateStation } from './stationUtils.js';
-//import { generatePlanetName } from './planetUtils';
-import { v4 as uuidv4 } from 'uuid';
 import { generateFullStarProfile } from './starUtils.js';
+import { generateStation } from './stationUtils.js';
 
 const generatePlanetName = (starName, index, uniqueNames) => {
     if (uniqueNames && uniqueNames.length > 0 && Math.random() < 0.4) { // 40% chance for a unique name
@@ -115,6 +114,8 @@ export const synthesizePlanetarySystem = (starName, starId) => {
             resourceList: [],
             moons: generateMoons(starId, planetName, planetId, planetType.type),
             settlements: [],
+            economy: generateEconomy(planetType.type),
+            industry: generateIndustry(planetType.type),
             atmosphere: generateAtmosphere(planetType.type),
         };
 
