@@ -12,6 +12,7 @@ import StarSystem from './models/StarSystem.js';
 import authMiddleware from './middleware/auth.js';
 import { usersModel } from './models/users.js';
 import { generateStarsForSector } from './utils/sectorUtils.js';
+import { synthesizeStarSystem } from './utils/synthesisUtils.js';
 import { generateCompleteStarSystem } from './utils/systemUtils.js';
 
 // --- Initialize Express App & Database Connection ---
@@ -141,6 +142,61 @@ app.get('/api/generateStarSystem', authMiddleware.checkKey, async (req, res) => 
     }
 });
 
+// In server.js
+
+app.get('/api/v1/systems/:starId', async (req, res) => {
+    try {
+        const { starId } = req.params;
+
+        // --- ADD THIS LOG ---
+        // This will show you the exact ID the API is trying to find.
+        console.log(`Searching for system with starId: ${starId}`);
+
+        // Find the system in the database using the starId from the URL.
+        const system = await StarSystem.findOne({ starId: starId });
+
+        if (!system) {
+            // This is what's incorrectly happening right now.
+            console.log(`System not found for ID: ${starId}`);
+            return res.status(404).json({ message: 'System not found.' });
+        }
+
+        // This is what SHOULD happen.
+        console.log(`System found: ${system.starName}`);
+        res.status(200).json(system);
+
+    } catch (error) {
+        console.error(`Error fetching system by ID:`, error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.post('/api/v1/systems', authMiddleware.checkKey, async (req, res) => {
+
+    console.log('Received request to create a new star system');
+
+    try {
+        // 1. The basic star data is received in the request body
+        const basicStarData = req.body;
+
+        if (!basicStarData || !basicStarData.id) {
+            return res.status(400).json({ error: 'Basic star data is required.' });
+        }
+
+        // 2. Synthesize the full system USING the provided star data
+        const newFullSystem = synthesizeStarSystem(basicStarData);
+
+        // 3. Save the new, specific system to the database
+        const systemToSave = new StarSystem(newFullSystem);
+        const savedSystem = await systemToSave.save();
+
+        res.status(201).json(savedSystem);
+
+    } catch (error) {
+        console.error('Error creating new star system:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
