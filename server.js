@@ -12,6 +12,7 @@ import StarSystem from './models/StarSystem.js';
 import authMiddleware from './middleware/auth.js';
 import { usersModel } from './models/users.js';
 import { generateStarsForSector } from './utils/sectorUtils.js';
+import { generateStarsForSector3D } from './utils/sectorUtils3D.js';
 import { synthesizeStarSystem } from './utils/synthesisUtils.js';
 import { generateCompleteStarSystem } from './utils/systemUtils.js';
 
@@ -85,6 +86,23 @@ app.get('/api/generateStars', authMiddleware.checkKey, async (req, res) => {
 
     // Call the dedicated function to get the stars for this sector
     const stars = generateStarsForSector(sectorX, sectorY);
+
+    res.status(200).json(stars);
+});
+
+app.get('/api/generateStars3d', authMiddleware.checkKey, async (req, res) => {
+    // Destructure all three coordinates from the query
+    const { sectorX, sectorY, sectorZ } = req.query;
+
+    // Validate that all three coordinates are provided
+    if (sectorX === undefined || sectorY === undefined || sectorZ === undefined) {
+        return res.status(400).json({
+            error: 'All three sector coordinates (sectorX, sectorY, sectorZ) are required.'
+        });
+    }
+
+    // Call the dedicated 3D generation function
+    const stars = generateStarsForSector3D(sectorX, sectorY, sectorZ);
 
     res.status(200).json(stars);
 });
