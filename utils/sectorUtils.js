@@ -36,6 +36,7 @@ export const generateStarsForSector = (sectorX, sectorY) => {
         // 4. Use the same seeded RNG to place the star within the sector boundaries
         star.x = sectorX * SECTOR_SIZE + rng() * SECTOR_SIZE;
         star.y = sectorY * SECTOR_SIZE + rng() * SECTOR_SIZE;
+        star.z = sectorZ * SECTOR_SIZE + rng() * SECTOR_SIZE;
 
         stars.push(star);
     }
