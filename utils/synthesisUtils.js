@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { generateAtmosphere } from './atmosphereUtils.js';
+import { generateSettlementLayout } from './buildingUtils.js';
 import { generateConditions } from './conditionUtils.js';
 import { generateEconomy } from './economyUtils.js';
 import { generateFaction } from './factionUtils.js';
@@ -9,6 +10,7 @@ import { generateIndustry } from './industryUtils.js';
 import { generateMineral } from './mineralUtils.js';
 import { generateMoons } from './moonUtils.js';
 import { planetTypes, settlementNames, uniquePlanetNames } from './namingUtils.js';
+import { generateInhabitants } from './speciesUtils.js';
 import { generateFullStarProfile } from './starUtils.js';
 import { generateStation } from './stationUtils.js';
 
@@ -117,7 +119,11 @@ export const synthesizePlanetarySystem = (starName, starId) => {
             economy: generateEconomy(planetType.type),
             industry: generateIndustry(planetType.type),
             atmosphere: generateAtmosphere(planetType.type),
+            inhabitants: []
         };
+
+        // Generate inhabitants after the main planet object is created
+        planet.inhabitants = generateInhabitants(planet);
 
         // Generate resources (2–4)
         const resourceCount = Math.floor(Math.random() * 3) + 2;
@@ -127,27 +133,39 @@ export const synthesizePlanetarySystem = (starName, starId) => {
 
         // Settlements + Economy (only for uniquely named planets)
         if (isUniqueName) {
-            const numSettlements = Math.floor(Math.random() * 11);
+            const numSettlements = Math.floor(Math.random() * 4) + 1; // 1-4 settlements
             const availableSettlementNames = [...settlementNames];
 
             for (let j = 0; j < numSettlements; j++) {
-                const settlementName = availableSettlementNames[Math.floor(Math.random() * availableSettlementNames.length)];
-                availableSettlementNames.splice(availableSettlementNames.indexOf(settlementName), 1);
-                planet.settlements.push({
+                if (availableSettlementNames.length === 0) break; // Avoid errors if we run out of names
+
+                const settlementName = availableSettlementNames.splice(
+                    Math.floor(Math.random() * availableSettlementNames.length), 1
+                )[0];
+
+                // 1. Create the basic settlement object first
+                const newSettlement = {
                     name: settlementName,
                     population: j === 0
-                        ? Math.floor(Math.random() * 200001) + 900000
-                        : Math.floor(Math.random() * 499001) + 1000,
-                });
+                        ? Math.floor(Math.random() * 200001) + 900000 // Capital city population
+                        : Math.floor(Math.random() * 499001) + 1000,   // Smaller settlement population
+                };
+
+                // 2. Now, generate the layout using the complete settlement object
+                newSettlement.layout = generateSettlementLayout(newSettlement, planet);
+
+                // 3. Push the final object to the array
+                planet.settlements.push(newSettlement);
             }
 
             if (planet.settlements.length > 0) {
                 const capitalIndex = Math.floor(Math.random() * planet.settlements.length);
                 planet.settlements[capitalIndex].isCapital = true;
-                planet.economy = generateEconomy()
-                planet.industry = generateIndustry()
+                planet.economy = generateEconomy();
+                planet.industry = generateIndustry();
             }
         }
+        console.log(planet);
 
         planets.push(planet);
     }
