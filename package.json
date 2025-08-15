@@ -5,8 +5,8 @@
   "description": "A proc-gen star map explorer built with React &amp; Canvas. Dive into an endless, procedurally generated galaxy with unique star systems, planets, and moons. 🌌",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon"
+    "start": "nodemon",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -30,9 +30,10 @@
     "@babel/cli": "^7.28.0",
     "@babel/core": "^7.28.0",
     "@babel/node": "^7.28.0",
-    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-env": "^7.28.3",
     "@babel/preset-react": "^7.27.1",
     "@babel/register": "^7.27.1",
+    "jest": "^30.0.5",
     "nodemon": "^3.1.10"
   }
 }

@@ -163,12 +163,13 @@ app.get('/api/generateStarSystem', authMiddleware.checkKey, async (req, res) => 
 // In server.js
 
 app.get('/api/v1/systems/:starId', async (req, res) => {
+    console.log("--- 🚀 STAR GENERATION ENDPOINT HIT! 🚀 ---");
     try {
         const { starId } = req.params;
 
         // --- ADD THIS LOG ---
         // This will show you the exact ID the API is trying to find.
-      //  console.log(`Searching for system with starId: ${starId}`);
+        console.log(`Searching for system with starId: ${starId}`);
 
         // Find the system in the database using the starId from the URL.
         const system = await StarSystem.findOne({ starId: starId });
@@ -180,7 +181,7 @@ app.get('/api/v1/systems/:starId', async (req, res) => {
         }
 
         // This is what SHOULD happen.
-       // console.log(`System found: ${system.starName}`);
+        // console.log(`System found: ${system.starName}`);
         res.status(200).json(system);
 
     } catch (error) {
@@ -191,7 +192,7 @@ app.get('/api/v1/systems/:starId', async (req, res) => {
 
 app.post('/api/v1/systems', authMiddleware.checkKey, async (req, res) => {
 
-    //console.log('Received request to create a new star system');
+    console.log('Received request to create a new star system');
 
     try {
         // 1. The basic star data is received in the request body
