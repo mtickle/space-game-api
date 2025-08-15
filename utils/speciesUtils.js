@@ -1,6 +1,7 @@
-import { getRandomItem, chance } from './randomUtils.js';
+import { chance, getRandomItem } from './randomUtils.js';
 
 // --- Sentient Species Database ---
+// NEW: Added 'societalTypes' to each species
 const speciesList = [
     {
         speciesId: 'humanoid-terran',
@@ -8,7 +9,8 @@ const speciesList = [
         description: 'Adaptable and resilient humanoids, descendants of ancient colonial efforts. Technologically adept and socially complex.',
         disposition: 'Pragmatic and Expansionist',
         homePlanetType: ['Rocky', 'Oceanic'],
-        techLevel: 'Advanced'
+        techLevel: 'Advanced',
+        societalTypes: ['Civilization'] // Can only form advanced societies
     },
     {
         speciesId: 'aquatic-cygnian',
@@ -16,7 +18,8 @@ const speciesList = [
         description: 'Graceful, amphibious beings with a deep connection to their planet\'s oceans. They are masters of biotechnology.',
         disposition: 'Philosophical and Territorial',
         homePlanetType: ['Oceanic'],
-        techLevel: 'Biological Mastery'
+        techLevel: 'Biological Mastery',
+        societalTypes: ['Civilization', 'Primitive'] // Can be found as either
     },
     {
         speciesId: 'silicon-krell',
@@ -24,7 +27,8 @@ const speciesList = [
         description: 'A silicon-based species that communicates through crystalline resonance. Their logic is as flawless as it is alien.',
         disposition: 'Scholarly and Cautious',
         homePlanetType: ['Crystaline', 'Barren'],
-        techLevel: 'Post-Singularity'
+        techLevel: 'Post-Singularity',
+        societalTypes: ['Civilization', 'Scattered Enclaves']
     },
     {
         speciesId: 'synthetic-automata',
@@ -32,15 +36,17 @@ const speciesList = [
         description: 'A self-replicating synthetic consciousness born from a long-dead civilization. They endlessly seek data and purpose.',
         disposition: 'Logical and Inquisitive',
         homePlanetType: ['Artificial', 'Metallic'],
-        techLevel: 'Machine Intelligence'
+        techLevel: 'Machine Intelligence',
+        societalTypes: ['Civilization']
     },
     {
         speciesId: 'avian-avior',
         speciesName: 'Avior Ascendants',
         description: 'Feathered bipeds with hollow bones, perfectly adapted to low-gravity worlds or gas giant moons.',
         disposition: 'Artistic and Fiercely Independent',
-        homePlanetType: ['Rocky', 'Gas Giant'], // Gas Giant implies moons
-        techLevel: 'Intermediate'
+        homePlanetType: ['Rocky', 'Gas Giant'],
+        techLevel: 'Intermediate',
+        societalTypes: ['Civilization', 'Primitive']
     },
     {
         speciesId: 'fungoid-mycelian',
@@ -48,33 +54,40 @@ const speciesList = [
         description: 'A hive-mind intelligence that exists as a vast, interconnected fungal network beneath the planet\'s surface.',
         disposition: 'Collective and Patient',
         homePlanetType: ['Exotic', 'Carbonaceous'],
-        techLevel: 'Organic'
+        techLevel: 'Organic',
+        societalTypes: ['Civilization', 'Primitive', 'Scattered Enclaves']
     }
 ];
 
 /**
  * Generates the sentient inhabitants for a given planet.
- * @param {object} planet - The planet object, containing planetType and planetConditions.
+ * @param {object} planet - The planet object, containing planetType and isUniqueName.
  * @returns {Array} An array containing the species object, or an empty array if none.
  */
 export const generateInhabitants = (planet) => {
-    // Planets that are unlikely to have native sentient life
     const uninhabitableTypes = ['Gas Giant', 'Volcanic', 'Barren'];
     if (uninhabitableTypes.includes(planet.planetType) && planet.planetType !== 'Artificial') {
-        // Exception for settlements on barren worlds, but no native species
         return [];
     }
-    
-    // 50% chance for a habitable planet to actually have a dominant sentient species
+
     if (!chance(0.5)) {
         return [];
     }
 
-    // Find species that could have evolved on this type of planet
-    const potentialNatives = speciesList.filter(s => s.homePlanetType.includes(planet.planetType));
-    
-    if (potentialNatives.length > 0) {
-        return [getRandomItem(potentialNatives)]; // Return an array with one species
+    // --- REFACTORED LOGIC ---
+    // Determine the required societal type based on whether the planet is named.
+    const requiredSocietalType = planet.isUniqueName ? 'Civilization' : 'Primitive';
+
+    // Find species that can exist on this planet type AND match the required societal structure.
+    const potentialInhabitants = speciesList.filter(s =>
+        s.homePlanetType.includes(planet.planetType) &&
+        s.societalTypes.includes(requiredSocietalType)
+    );
+
+    if (potentialInhabitants.length > 0) {
+        const species = getRandomItem(potentialInhabitants);
+        // Add the societal type to the final object for more descriptive data
+        return [{ ...species, societalType: requiredSocietalType }];
     }
 
     return [];

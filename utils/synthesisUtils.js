@@ -7,52 +7,47 @@ import { generateFaction } from './factionUtils.js';
 import { generateFauna } from './faunaUtils.js';
 import { generateFlora } from './floraUtils.js';
 import { generateIndustry } from './industryUtils.js';
-import { generateMineral } from './mineralUtils.js';
 import { generateMoons } from './moonUtils.js';
 import { planetTypes, settlementNames, uniquePlanetNames } from './namingUtils.js';
+import { chance } from './randomUtils.js';
+import { generateResources } from './resourceUtils.js';
 import { generateInhabitants } from './speciesUtils.js';
 import { generateFullStarProfile } from './starUtils.js';
 import { generateStation } from './stationUtils.js';
 
-const generatePlanetName = (starName, index, uniqueNames) => {
-    if (uniqueNames && uniqueNames.length > 0 && Math.random() < 0.4) { // 40% chance for a unique name
-        const name = uniqueNames[Math.floor(Math.random() * uniqueNames.length)];
-        uniqueNames.splice(uniqueNames.indexOf(name), 1); // Remove used name to avoid duplicates
+// MODIFIED: This function now accepts a 'forceUnique' flag
+const generatePlanetName = (starName, index, uniqueNames, forceUnique = false) => {
+    const shouldUseUnique = forceUnique || (uniqueNames.length > 0 && chance(0.4));
+
+    if (shouldUseUnique && uniqueNames.length > 0) {
+        const name = uniqueNames.splice(Math.floor(Math.random() * uniqueNames.length), 1)[0];
         return name;
     }
-    const letters = ['a', 'b', 'c', 'd', 'e', 'f'];
+    const letters = ['b', 'c', 'd', 'e', 'f', 'g'];
     return `${starName} ${letters[index]}`;
 };
 
 export function synthesizeStarSystem(star) {
-    // console.log(star)
     if (!star || !star.id || !star.name) {
-        // console.warn('[Synthesis] Invalid star object:', star);
+        console.warn('[Synthesis] Invalid star object:', star);
         return null;
     }
 
-    //--- Let's make babies, baby.
     const planets = synthesizePlanetarySystem(star.name, star.id);
 
     if (!planets || !Array.isArray(planets)) {
-        // console.warn('[Synthesis] Failed to generate planets for star:', star.name);
+        console.warn('[Synthesis] Failed to generate planets for star:', star.name);
         return null;
     }
 
     const catalogedFlora = planets.flatMap(p => p.floraList || []);
     const catalogedFauna = planets.flatMap(p => p.faunaList || []);
     const { type, temp, description } = generateFullStarProfile();
-    const faction = generateFaction(); // { name, symbol }
+    const faction = generateFaction();
 
-    // --- NEW: Generate Space Station Data ---
     let spaceStation = null;
-    if (faction && faction.id) { // Only generate a station if a valid faction object is assigned
-        // console.log("[Synthesis] Faction is valid, attempting to generate space station..."); // Debug log
-        // Pass the full faction object, starId, and starName to generate station data
+    if (faction && faction.id) {
         spaceStation = generateStation(faction, star.id, star.name);
-        //console.log("[Synthesis] Result of generateStationData:", spaceStation); // Debug log: Check if spaceStation is null here
-    } else {
-        // console.log("[Synthesis] No valid faction found for station generation. Faction:", faction); // Debug log
     }
 
     const starSystem = {
@@ -73,18 +68,16 @@ export function synthesizeStarSystem(star) {
         faction
     };
 
-    //saveStarSystemToStorage(starSystem);
-
+    console.log('[Synthesis] Synthesized star system:', starSystem);
     return starSystem;
 }
 
 export const synthesizePlanetarySystem = (starName, starId) => {
-    const numPlanets = Math.floor(Math.random() * 5) + 2; // 2–6 planets
+    const numPlanets = Math.floor(Math.random() * 5) + 2;
     const planets = [];
     const availableUniqueNames = [...uniquePlanetNames];
 
     for (let i = 0; i < numPlanets; i++) {
-        // Weighted planet type selection
         const rand = Math.random();
         let cumulative = 0;
         let planetType = planetTypes[planetTypes.length - 1];
@@ -96,9 +89,12 @@ export const synthesizePlanetarySystem = (starName, starId) => {
             }
         }
 
-        const planetName = generatePlanetName(starName, i, availableUniqueNames);
+        const canHaveSettlements = !['Gas Giant', 'Volcanic'].includes(planetType.type);
+        const hasSettlements = canHaveSettlements && chance(0.4);
+
+        const planetName = generatePlanetName(starName, i, availableUniqueNames, hasSettlements);
         const isUniqueName = !planetName.includes(starName);
-        const planetId = uuidv4()
+        const planetId = uuidv4();
 
         const planet = {
             starId,
@@ -112,60 +108,50 @@ export const synthesizePlanetarySystem = (starName, starId) => {
             orbitRadius: 20 + i * 15,
             isUniqueName,
             floraList: generateFlora(planetType.type),
-            faunaList: generateFauna(planetType.type),
-            resourceList: [],
+            faunaList: generateFauna({ planetType: planetType.type }),
+            resourceList: generateResources(planetType.type),
             moons: generateMoons(starId, planetName, planetId, planetType.type),
             settlements: [],
-            economy: generateEconomy(planetType.type),
-            industry: generateIndustry(planetType.type),
+            economy: null,
+            industry: null,
+            inhabitants: [],
             atmosphere: generateAtmosphere(planetType.type),
-            inhabitants: []
         };
 
-        // Generate inhabitants after the main planet object is created
         planet.inhabitants = generateInhabitants(planet);
 
-        // Generate resources (2–4)
-        const resourceCount = Math.floor(Math.random() * 3) + 2;
-        for (let r = 0; r < resourceCount; r++) {
-            planet.resourceList.push(generateMineral(planetType.type));
-        }
-
-        // Settlements + Economy (only for uniquely named planets)
-        if (isUniqueName) {
-            const numSettlements = Math.floor(Math.random() * 4) + 1; // 1-4 settlements
+        if (hasSettlements) {
+            const numSettlements = Math.floor(Math.random() * 4) + 1;
             const availableSettlementNames = [...settlementNames];
 
             for (let j = 0; j < numSettlements; j++) {
-                if (availableSettlementNames.length === 0) break; // Avoid errors if we run out of names
+                if (availableSettlementNames.length === 0) break;
 
                 const settlementName = availableSettlementNames.splice(
                     Math.floor(Math.random() * availableSettlementNames.length), 1
                 )[0];
 
-                // 1. Create the basic settlement object first
+                // --- FIX: Create the settlement object BEFORE using it ---
                 const newSettlement = {
                     name: settlementName,
                     population: j === 0
-                        ? Math.floor(Math.random() * 200001) + 900000 // Capital city population
-                        : Math.floor(Math.random() * 499001) + 1000,   // Smaller settlement population
+                        ? Math.floor(Math.random() * 200001) + 900000
+                        : Math.floor(Math.random() * 499001) + 1000,
                 };
 
-                // 2. Now, generate the layout using the complete settlement object
+                // Now generate the layout and push the complete object
                 newSettlement.layout = generateSettlementLayout(newSettlement, planet);
-
-                // 3. Push the final object to the array
                 planet.settlements.push(newSettlement);
             }
 
             if (planet.settlements.length > 0) {
                 const capitalIndex = Math.floor(Math.random() * planet.settlements.length);
                 planet.settlements[capitalIndex].isCapital = true;
+
                 planet.economy = generateEconomy();
                 planet.industry = generateIndustry();
             }
         }
-        console.log(planet);
 
         planets.push(planet);
     }

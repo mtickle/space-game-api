@@ -109,7 +109,7 @@ app.get('/api/generateStars3d', authMiddleware.checkKey, async (req, res) => {
 
 app.get('/api/generate10000StarSystems', authMiddleware.checkKey, async (req, res) => {
     try {
-        console.log("Starting generation of 1000 star systems...");
+        //console.log("Starting generation of 1000 star systems...");
 
         const systemsToSave = [];
 
@@ -128,7 +128,7 @@ app.get('/api/generate10000StarSystems', authMiddleware.checkKey, async (req, re
         // 2. Use insertMany() to save all systems in a single database operation
         await StarSystem.insertMany(systemsToSave);
 
-        console.log(`Successfully generated and saved ${systemsToSave.length} star systems.`);
+        //console.log(`Successfully generated and saved ${systemsToSave.length} star systems.`);
 
         // 3. Respond with a success message
         res.status(201).json({
@@ -168,19 +168,19 @@ app.get('/api/v1/systems/:starId', async (req, res) => {
 
         // --- ADD THIS LOG ---
         // This will show you the exact ID the API is trying to find.
-        console.log(`Searching for system with starId: ${starId}`);
+      //  console.log(`Searching for system with starId: ${starId}`);
 
         // Find the system in the database using the starId from the URL.
         const system = await StarSystem.findOne({ starId: starId });
 
         if (!system) {
             // This is what's incorrectly happening right now.
-            console.log(`System not found for ID: ${starId}`);
+            //console.log(`System not found for ID: ${starId}`);
             return res.status(404).json({ message: 'System not found.' });
         }
 
         // This is what SHOULD happen.
-        console.log(`System found: ${system.starName}`);
+       // console.log(`System found: ${system.starName}`);
         res.status(200).json(system);
 
     } catch (error) {
@@ -191,7 +191,7 @@ app.get('/api/v1/systems/:starId', async (req, res) => {
 
 app.post('/api/v1/systems', authMiddleware.checkKey, async (req, res) => {
 
-    console.log('Received request to create a new star system');
+    //console.log('Received request to create a new star system');
 
     try {
         // 1. The basic star data is received in the request body
