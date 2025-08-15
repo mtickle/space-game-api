@@ -70,24 +70,29 @@ export const generateInhabitants = (planet) => {
         return [];
     }
 
-    if (!chance(0.5)) {
-        return [];
-    }
-
-    // --- REFACTORED LOGIC ---
-    // Determine the required societal type based on whether the planet is named.
-    const requiredSocietalType = planet.isUniqueName ? 'Civilization' : 'Primitive';
-
-    // Find species that can exist on this planet type AND match the required societal structure.
-    const potentialInhabitants = speciesList.filter(s =>
-        s.homePlanetType.includes(planet.planetType) &&
-        s.societalTypes.includes(requiredSocietalType)
-    );
-
-    if (potentialInhabitants.length > 0) {
-        const species = getRandomItem(potentialInhabitants);
-        // Add the societal type to the final object for more descriptive data
-        return [{ ...species, societalType: requiredSocietalType }];
+    // --- REVISED LOGIC ---
+    if (planet.isUniqueName) {
+        // Named planets ALWAYS have a civilized species.
+        const potentialInhabitants = speciesList.filter(s =>
+            s.homePlanetType.includes(planet.planetType) &&
+            s.societalTypes.includes('Civilization')
+        );
+        if (potentialInhabitants.length > 0) {
+            const species = getRandomItem(potentialInhabitants);
+            return [{ ...species, societalType: 'Civilization' }];
+        }
+    } else {
+        // Unnamed planets have a CHANCE to have primitive life.
+        if (chance(0.3)) { // 30% chance for primitives
+            const potentialInhabitants = speciesList.filter(s =>
+                s.homePlanetType.includes(planet.planetType) &&
+                s.societalTypes.includes('Primitive')
+            );
+            if (potentialInhabitants.length > 0) {
+                const species = getRandomItem(potentialInhabitants);
+                return [{ ...species, societalType: 'Primitive' }];
+            }
+        }
     }
 
     return [];

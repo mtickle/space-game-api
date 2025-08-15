@@ -89,10 +89,14 @@ export const synthesizePlanetarySystem = (starName, starId) => {
             }
         }
 
-        const canHaveSettlements = !['Gas Giant', 'Volcanic'].includes(planetType.type);
-        const hasSettlements = canHaveSettlements && chance(0.4);
+        // 1. Decide if this planet will host a civilization.
+        //const canHaveSettlements = !['Gas Giant', 'Volcanic'].includes(planetType.type);
+        //const hasSettlements = canHaveSettlements && chance(0.4);
+        const canHaveCivilization = !['Gas Giant', 'Volcanic'].includes(planetType.type);
+        const hasCivilization = canHaveCivilization && chance(0.4); // 40% chance
 
-        const planetName = generatePlanetName(starName, i, availableUniqueNames, hasSettlements);
+        // 2. The presence of a civilization dictates everything else.
+        const planetName = generatePlanetName(starName, i, availableUniqueNames, hasCivilization);
         const isUniqueName = !planetName.includes(starName);
         const planetId = uuidv4();
 
@@ -120,39 +124,62 @@ export const synthesizePlanetarySystem = (starName, starId) => {
 
         planet.inhabitants = generateInhabitants(planet);
 
-        if (hasSettlements) {
+        if (hasCivilization) {
+            // It MUST have settlements...
             const numSettlements = Math.floor(Math.random() * 4) + 1;
             const availableSettlementNames = [...settlementNames];
-
             for (let j = 0; j < numSettlements; j++) {
-                if (availableSettlementNames.length === 0) break;
-
-                const settlementName = availableSettlementNames.splice(
-                    Math.floor(Math.random() * availableSettlementNames.length), 1
-                )[0];
-
-                // --- FIX: Create the settlement object BEFORE using it ---
-                const newSettlement = {
-                    name: settlementName,
-                    population: j === 0
-                        ? Math.floor(Math.random() * 200001) + 900000
-                        : Math.floor(Math.random() * 499001) + 1000,
-                };
-
-                // Now generate the layout and push the complete object
+                // ... (settlement generation logic)
+                const newSettlement = { /* ... */ };
                 newSettlement.layout = generateSettlementLayout(newSettlement, planet);
                 planet.settlements.push(newSettlement);
             }
 
+            // ...which MUST have a capital...
             if (planet.settlements.length > 0) {
                 const capitalIndex = Math.floor(Math.random() * planet.settlements.length);
                 planet.settlements[capitalIndex].isCapital = true;
-
-                planet.economy = generateEconomy();
-                planet.industry = generateIndustry();
             }
+
+            // ...and it MUST have an economy and industry.
+            planet.economy = generateEconomy();
+            planet.industry = generateIndustry();
         }
 
+        // if (hasSettlements) {
+        //     const numSettlements = Math.floor(Math.random() * 4) + 1;
+        //     const availableSettlementNames = [...settlementNames];
+
+        //     for (let j = 0; j < numSettlements; j++) {
+        //         if (availableSettlementNames.length === 0) break;
+
+        //         const settlementName = availableSettlementNames.splice(
+        //             Math.floor(Math.random() * availableSettlementNames.length), 1
+        //         )[0];
+
+        //         // --- FIX: Create the settlement object BEFORE using it ---
+        //         const newSettlement = {
+        //             name: settlementName,
+        //             population: j === 0
+        //                 ? Math.floor(Math.random() * 200001) + 900000
+        //                 : Math.floor(Math.random() * 499001) + 1000,
+        //         };
+
+        //         // Now generate the layout and push the complete object
+        //         newSettlement.layout = generateSettlementLayout(newSettlement, planet);
+        //         planet.settlements.push(newSettlement);
+        //     }
+
+        //     if (planet.settlements.length > 0) {
+        //         const capitalIndex = Math.floor(Math.random() * planet.settlements.length);
+        //         planet.settlements[capitalIndex].isCapital = true;
+
+        //         planet.economy = generateEconomy();
+        //         planet.industry = generateIndustry();
+        //     }
+        // }
+
+        console.log(planet);
         planets.push(planet);
     }
 
