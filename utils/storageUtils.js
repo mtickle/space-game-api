@@ -98,7 +98,7 @@ export async function saveThingsToDatabase(endpoint, data) {
     //let apiUrl = 'http://localhost:3001/api/' + endpoint;
     let apiUrl = 'https://game-api-zjod.onrender.com/api/' + endpoint;
 
-    //console.log('Saving to database:', apiUrl, data);
+    console.log('Saving to database:', apiUrl, data);
 
     try {
         const response = await fetch(apiUrl, {

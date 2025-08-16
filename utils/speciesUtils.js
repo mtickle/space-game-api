@@ -80,7 +80,9 @@ export const generateInhabitants = (planet) => {
         if (potentialInhabitants.length > 0) {
             const species = getRandomItem(potentialInhabitants);
             return [{ ...species, societalType: 'Civilization' }];
+
         }
+
     } else {
         // Unnamed planets have a CHANCE to have primitive life.
         if (chance(0.3)) { // 30% chance for primitives

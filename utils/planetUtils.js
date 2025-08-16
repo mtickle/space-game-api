@@ -13,7 +13,7 @@ export function hydrateOrSynthesizeSystem(clickedStar, orbitStateRef, allStars) 
     } else { //--- SAVE THE SYSTEM
         fullSystem = synthesizeStarSystem(clickedStar);
         saveHydratedStarSystem(fullSystem);
-        saveThingsToDatabase("postStarSystem", fullSystem)
+        //saveThingsToDatabase("postStarSystem", fullSystem)
 
         //console.log(`[Synthesis] Created new system for ${clickedStar.name}`);
         //setSelectedStar(fullSystem); // fullSystem must contain planets

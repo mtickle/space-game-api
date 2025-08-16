@@ -14,11 +14,9 @@ import { generateResources } from './resourceUtils.js';
 import { generateInhabitants } from './speciesUtils.js';
 import { generateFullStarProfile } from './starUtils.js';
 import { generateStation } from './stationUtils.js';
-
 // MODIFIED: This function now accepts a 'forceUnique' flag
 const generatePlanetName = (starName, index, uniqueNames, forceUnique = false) => {
     const shouldUseUnique = forceUnique || (uniqueNames.length > 0 && chance(0.4));
-
     if (shouldUseUnique && uniqueNames.length > 0) {
         const name = uniqueNames.splice(Math.floor(Math.random() * uniqueNames.length), 1)[0];
         return name;
@@ -68,7 +66,7 @@ export function synthesizeStarSystem(star) {
         faction
     };
 
-    console.log('[Synthesis] Synthesized star system:', starSystem);
+    //saveThingsToDatabase("postStarSystem", starSystem)
     return starSystem;
 }
 
@@ -89,13 +87,11 @@ export const synthesizePlanetarySystem = (starName, starId) => {
             }
         }
 
-        // 1. Decide if this planet will host a civilization.
-        //const canHaveSettlements = !['Gas Giant', 'Volcanic'].includes(planetType.type);
-        //const hasSettlements = canHaveSettlements && chance(0.4);
+        // 1. Decide if this planet will host a civilization. This is the key driver.
         const canHaveCivilization = !['Gas Giant', 'Volcanic'].includes(planetType.type);
-        const hasCivilization = canHaveCivilization && chance(0.4); // 40% chance
+        const hasCivilization = canHaveCivilization && chance(0.4);
 
-        // 2. The presence of a civilization dictates everything else.
+        // 2. The presence of a civilization dictates the name.
         const planetName = generatePlanetName(starName, i, availableUniqueNames, hasCivilization);
         const isUniqueName = !planetName.includes(starName);
         const planetId = uuidv4();
@@ -111,6 +107,7 @@ export const synthesizePlanetarySystem = (starName, starId) => {
             planetSize: Math.floor(Math.random() * 10) + 1,
             orbitRadius: 20 + i * 15,
             isUniqueName,
+            hasCivilization,
             floraList: generateFlora(planetType.type),
             faunaList: generateFauna({ planetType: planetType.type }),
             resourceList: generateResources(planetType.type),
@@ -122,64 +119,39 @@ export const synthesizePlanetarySystem = (starName, starId) => {
             atmosphere: generateAtmosphere(planetType.type),
         };
 
-        planet.inhabitants = generateInhabitants(planet);
-
+        // 3. If it has a civilization, generate all related components.
         if (hasCivilization) {
-            // It MUST have settlements...
             const numSettlements = Math.floor(Math.random() * 4) + 1;
             const availableSettlementNames = [...settlementNames];
+
             for (let j = 0; j < numSettlements; j++) {
-                // ... (settlement generation logic)
-                const newSettlement = { /* ... */ };
+                if (availableSettlementNames.length === 0) break;
+                const settlementName = availableSettlementNames.splice(Math.floor(Math.random() * availableSettlementNames.length), 1)[0];
+                const newSettlement = {
+                    name: settlementName,
+                    population: j === 0
+                        ? Math.floor(Math.random() * 200001) + 900000
+                        : Math.floor(Math.random() * 499001) + 1000,
+                };
                 newSettlement.layout = generateSettlementLayout(newSettlement, planet);
                 planet.settlements.push(newSettlement);
             }
 
-            // ...which MUST have a capital...
             if (planet.settlements.length > 0) {
                 const capitalIndex = Math.floor(Math.random() * planet.settlements.length);
                 planet.settlements[capitalIndex].isCapital = true;
-            }
 
-            // ...and it MUST have an economy and industry.
-            planet.economy = generateEconomy();
-            planet.industry = generateIndustry();
+                // Economy and industry are now correctly tied to having a civilization.
+                planet.economy = generateEconomy();
+                planet.industry = generateIndustry();
+            }
         }
 
-        // if (hasSettlements) {
-        //     const numSettlements = Math.floor(Math.random() * 4) + 1;
-        //     const availableSettlementNames = [...settlementNames];
+        // 4. Inhabitants are generated based on the final state of the planet.
+        planet.inhabitants = generateInhabitants(planet);
 
-        //     for (let j = 0; j < numSettlements; j++) {
-        //         if (availableSettlementNames.length === 0) break;
+        console.dir(planet, { depth: null });
 
-        //         const settlementName = availableSettlementNames.splice(
-        //             Math.floor(Math.random() * availableSettlementNames.length), 1
-        //         )[0];
-
-        //         // --- FIX: Create the settlement object BEFORE using it ---
-        //         const newSettlement = {
-        //             name: settlementName,
-        //             population: j === 0
-        //                 ? Math.floor(Math.random() * 200001) + 900000
-        //                 : Math.floor(Math.random() * 499001) + 1000,
-        //         };
-
-        //         // Now generate the layout and push the complete object
-        //         newSettlement.layout = generateSettlementLayout(newSettlement, planet);
-        //         planet.settlements.push(newSettlement);
-        //     }
-
-        //     if (planet.settlements.length > 0) {
-        //         const capitalIndex = Math.floor(Math.random() * planet.settlements.length);
-        //         planet.settlements[capitalIndex].isCapital = true;
-
-        //         planet.economy = generateEconomy();
-        //         planet.industry = generateIndustry();
-        //     }
-        // }
-
-        console.log(planet);
         planets.push(planet);
     }
 

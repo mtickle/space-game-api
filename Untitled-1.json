@@ -1,0 +1,203 @@
+{
+  "starId": "ff72a2f3-1311-4a1f-8f1d-d96542ca2a2a",
+  "starName": "Trenor-III",
+  "planetId": "26404773-fe13-435f-b6f7-c16360b26e1b",
+  "planetName": "Elarion",
+  "planetConditions": {
+    "weather": "Misty with a Chance of Regret",
+    "temperature": "Frosty",
+    "nightTemperature": "Bitter Cold",
+    "wind": "Sonic Boom Breezes",
+    "toxicity": "Deadly",
+    "radiation": "Suit-Melting"
+  },
+  "planetType": "Artificial",
+  "planetColor": "#F0E68C",
+  "planetSize": 3,
+  "orbitRadius": 35,
+  "isUniqueName": true,
+  "hasCivilization": true,
+  "floraList": [
+    {
+      "name": "Quarrovine",
+      "type": "vine",
+      "appearance": "drooping",
+      "rarity": "Common",
+      "edible": true,
+      "poisonous": false,
+      "sentient": false,
+      "cultivatable": true,
+      "utility": "Tech Component",
+      "synthetic": true,
+      "notes": null
+    },
+    {
+      "name": "Lumkabud",
+      "type": "tree",
+      "appearance": "mossy",
+      "rarity": "Uncommon",
+      "edible": false,
+      "poisonous": false,
+      "sentient": false,
+      "cultivatable": false,
+      "utility": "Ornamental",
+      "synthetic": true,
+      "notes": "Its pollen causes mild euphoria and uncontrollable dance moves."
+    },
+    {
+      "name": "Nehmivine",
+      "type": "coral-like",
+      "appearance": "scaled",
+      "rarity": "Uncommon",
+      "edible": false,
+      "poisonous": false,
+      "sentient": false,
+      "cultivatable": true,
+      "utility": "Tech Component",
+      "synthetic": true,
+      "notes": null
+    },
+    {
+      "name": "Quarmibud",
+      "type": "vine",
+      "appearance": "blackened",
+      "rarity": "Common",
+      "edible": false,
+      "poisonous": true,
+      "sentient": false,
+      "cultivatable": false,
+      "utility": "Fuel",
+      "synthetic": true,
+      "notes": null
+    },
+    {
+      "name": "Xanthebud",
+      "type": "vine",
+      "appearance": "shimmering",
+      "rarity": "Rare",
+      "edible": false,
+      "poisonous": false,
+      "sentient": false,
+      "cultivatable": false,
+      "utility": "Ornamental",
+      "synthetic": true,
+      "notes": "Known to scream when plucked. Local chefs recommend earplugs."
+    }
+  ],
+  "faunaList": [
+    {
+      "name": "Talquorzor",
+      "type": "synthetic",
+      "behavior": "edible",
+      "biome": "amphibious",
+      "feet": 10,
+      "gendered": false,
+      "laysEggs": false,
+      "description": "A edible synthetic that prefers the amphibious biome."
+    },
+    {
+      "name": "Quoryildro",
+      "type": "synthetic",
+      "behavior": "sentient",
+      "biome": "aerial",
+      "feet": 6,
+      "gendered": true,
+      "laysEggs": false,
+      "description": "A sentient synthetic that prefers the aerial biome."
+    },
+    {
+      "name": "Yilfelska",
+      "type": "synthetic",
+      "behavior": "peaceful",
+      "biome": "subterranean",
+      "feet": 2,
+      "gendered": false,
+      "laysEggs": false,
+      "description": "A peaceful synthetic that prefers the subterranean biome."
+    },
+    {
+      "name": "Quoryil",
+      "type": "synthetic",
+      "behavior": "pack hunter",
+      "biome": "marine",
+      "feet": 0,
+      "gendered": true,
+      "laysEggs": false,
+      "description": "A pack hunter synthetic that prefers the marine biome."
+    }
+  ],
+  "resourceList": [
+    { "mineralName": "Data Cores", "elements": ["Fe", "Ca", "O"] },
+    {
+      "mineralName": "Nanites",
+      "elements": ["O", "Si", "Na", "Ni"],
+      "unknownElements": [{ "symbol": "X25", "name": "Unknown-135" }]
+    },
+    { "mineralName": "Alloy Plates", "elements": ["Ni"] }
+  ],
+  "moons": [],
+  "settlements": [
+    {
+      "name": "Ashfall",
+      "population": 1096499,
+      "layout": {
+        "theme": "High-Tech",
+        "condition": "Pristine",
+        "buildings": [
+          { "name": "Cryo-Stasis Facility", "type": "Medical" },
+          { "name": "Hydroponics Farm", "type": "Food" },
+          { "name": "Fusion Power Core", "type": "Energy" },
+          { "name": "Bio-Forge", "type": "Industry" },
+          { "name": "Agri-Dome", "type": "Food" },
+          { "name": "Herbalist Den", "type": "Medical" },
+          { "name": "Medbay Clinic", "type": "Medical" },
+          { "name": "Luxury Sky-Towers", "type": "Residential" },
+          { "name": "Open-Air Market", "type": "Commerce" },
+          { "name": "Scrap-Built Shanties", "type": "Residential" }
+        ]
+      },
+      "isCapital": true
+    },
+    {
+      "name": "Goldhaven",
+      "population": 431929,
+      "layout": {
+        "theme": "High-Tech",
+        "condition": "Pristine",
+        "buildings": [
+          { "name": "Open-Air Market", "type": "Commerce" },
+          { "name": "Xeno-Biology Lab", "type": "Science" },
+          { "name": "Geothermal Vents", "type": "Energy" },
+          { "name": "Forbidden Archives", "type": "Science" }
+        ]
+      }
+    }
+  ],
+  "economy": {
+    "name": "Hive Economy",
+    "description": "A collective mind distributes resources based on function. Individual ambition is frowned upon, mostly because it doesn’t exist."
+  },
+  "industry": {
+    "name": "Agritech & Hydroponics",
+    "description": "Feeding billions with high-efficiency algae, protein paste, and 'tangy flavor modules.'"
+  },
+  "inhabitants": [
+    {
+      "speciesId": "synthetic-automata",
+      "speciesName": "The Automata",
+      "description": "A self-replicating synthetic consciousness born from a long-dead civilization. They endlessly seek data and purpose.",
+      "disposition": "Logical and Inquisitive",
+      "homePlanetType": ["Artificial", "Metallic"],
+      "techLevel": "Machine Intelligence",
+      "societalTypes": ["Civilization"],
+      "societalType": "Civilization"
+    }
+  ],
+  "atmosphere": {
+    "elements": [
+      { "name": "Nitrogen", "percent": 0.78 },
+      { "name": "Oxygen", "percent": 0.21 },
+      { "name": "Helium", "percent": 0.01 }
+    ]
+  }
+}
