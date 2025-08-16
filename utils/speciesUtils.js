@@ -65,10 +65,10 @@ const speciesList = [
  * @returns {Array} An array containing the species object, or an empty array if none.
  */
 export const generateInhabitants = (planet) => {
-    const uninhabitableTypes = ['Gas Giant', 'Volcanic', 'Barren'];
-    if (uninhabitableTypes.includes(planet.planetType) && planet.planetType !== 'Artificial') {
-        return [];
-    }
+    // const uninhabitableTypes = ['Gas Giant', 'Volcanic', 'Barren'];
+    // if (uninhabitableTypes.includes(planet.planetType) && planet.planetType !== 'Artificial') {
+    //     return [];
+    // }
 
     // --- REVISED LOGIC ---
     if (planet.isUniqueName) {

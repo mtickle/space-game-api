@@ -83,7 +83,8 @@ export const synthesizePlanetarySystem = (starName, starId) => {
         }
 
         // 1. Decide if this planet will host a civilization. This is the key driver.
-        const hasCivilization = chance(0.6);
+        //const hasCivilization = chance(0.6);
+        const hasCivilization = true;
 
         // 2. The presence of a civilization dictates the name.
         const planetName = generatePlanetName(starName, i, availableUniqueNames, hasCivilization);
@@ -91,26 +92,37 @@ export const synthesizePlanetarySystem = (starName, starId) => {
         const planetId = uuidv4();
 
         const planet = {
+
+            //--- Basic planet properties, as in, things already generated.
             starId,
             starName,
             planetId,
             planetName,
-            planetConditions: generateConditions(planetType.type),
             planetType: planetType.type,
             planetColor: planetType.color,
+
+            //--- Things that are calculated.
             planetSize: Math.floor(Math.random() * 10) + 1,
             orbitRadius: 20 + i * 15,
-            isUniqueName,            
-            hasCivilization, // Keep this flag for clarity
-            floraList: generateFlora(planetType.type),
-            faunaList: generateFauna({ planetType: planetType.type }),
-            resourceList: generateResources(planetType.type),
-            moons: generateMoons(starId, planetName, planetId, planetType.type),
-            settlements: [],
-            economy: null,
-            industry: null,
-            inhabitants: [],
+
+            //--- Flags.
+            isUniqueName,
+            hasCivilization,
+
+            //--- Things being generated right now.
             atmosphere: generateAtmosphere(planetType.type),
+            faunaList: generateFauna({ planetType: planetType.type }),
+            floraList: generateFlora(planetType.type),
+            moons: generateMoons(starId, planetName, planetId, planetType.type),
+            planetConditions: generateConditions(planetType.type),
+            resourceList: generateResources(planetType.type),
+
+            //--- Things we might generate later.
+            settlements: [],
+            economy: [],
+            industry: [],
+            inhabitants: [],
+
         };
 
         // 3. If it has a civilization, generate ALL related components together.
@@ -139,7 +151,7 @@ export const synthesizePlanetarySystem = (starName, starId) => {
             planet.economy = generateEconomy();
             planet.industry = generateIndustry();
             planet.inhabitants = generateInhabitants(planet);
-        
+
         } else {
             // If it's not a civilized world, it might still have primitives.
             planet.inhabitants = generateInhabitants(planet);

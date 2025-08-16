@@ -72,12 +72,16 @@ const PlanetSchema = new mongoose.Schema({
     planetSize: Number,
     orbitRadius: Number,
     isUniqueName: Boolean,
+    hasCivilization: Boolean,
     floraList: [FloraFaunaSchema],
     faunaList: [FloraFaunaSchema],
     resourceList: [mongoose.Schema.Types.Mixed], // Define a proper schema if needed
     moons: [MoonSchema],
     settlements: [mongoose.Schema.Types.Mixed], // Or define a SettlementSchema
     atmosphere: mongoose.Schema.Types.Mixed,
+    economy: mongoose.Schema.Types.Mixed, // Can be an object or null
+    industry: mongoose.Schema.Types.Mixed, // Can be an object or null
+    inhabitants: [mongoose.Schema.Types.Mixed] // An array of species objects
 }, { _id: false });
 
 
