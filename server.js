@@ -206,8 +206,10 @@ app.post('/api/v1/systems', authMiddleware.checkKey, async (req, res) => {
         const newFullSystem = synthesizeStarSystem(basicStarData);
 
         // 3. Save the new, specific system to the database
-        const systemToSave = new StarSystem(newFullSystem);
-        const savedSystem = await systemToSave.save();
+        //const systemToSave = new StarSystem(newFullSystem);
+        //const savedSystem = await systemToSave.save();
+
+        const savedSystem = await StarSystem.create(newFullSystem);
 
         res.status(201).json(savedSystem);
 

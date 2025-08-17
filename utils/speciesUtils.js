@@ -1,7 +1,6 @@
 import { chance, getRandomItem } from './randomUtils.js';
 
-// --- Sentient Species Database ---
-// NEW: Added 'societalTypes' to each species
+
 const speciesList = [
     {
         speciesId: 'humanoid-terran',
@@ -56,6 +55,24 @@ const speciesList = [
         homePlanetType: ['Exotic', 'Carbonaceous'],
         techLevel: 'Organic',
         societalTypes: ['Civilization', 'Primitive', 'Scattered Enclaves']
+    },
+    {
+        speciesId: 'ursine-glacialis',
+        speciesName: 'Glacial Ursines',
+        description: 'Massive, fur-covered beings adapted to sub-zero temperatures. They are formidable hunters who live in small, nomadic clans across the ice sheets.',
+        disposition: 'Stoic and Territorial',
+        homePlanetType: ['Ice World'],
+        techLevel: 'Primitive',
+        societalTypes: ['Primitive', 'Scattered Enclaves']
+    },
+    {
+        speciesId: 'insectoid-cryo',
+        speciesName: 'Cryo-Insectoids',
+        description: 'A hive-minded insectoid species that burrows deep beneath the ice, thriving near geothermal vents. They build intricate cities of ice and organic resin.',
+        disposition: 'Collective and Industrious',
+        homePlanetType: ['Ice World'],
+        techLevel: 'Geothermal',
+        societalTypes: ['Civilization', 'Primitive']
     }
 ];
 
@@ -65,36 +82,31 @@ const speciesList = [
  * @returns {Array} An array containing the species object, or an empty array if none.
  */
 export const generateInhabitants = (planet) => {
-    // const uninhabitableTypes = ['Gas Giant', 'Volcanic', 'Barren'];
-    // if (uninhabitableTypes.includes(planet.planetType) && planet.planetType !== 'Artificial') {
-    //     return [];
-    // }
 
-    // --- REVISED LOGIC ---
+    let requiredSocietalType = null;
+
     if (planet.isUniqueName) {
-        // Named planets ALWAYS have a civilized species.
-        const potentialInhabitants = speciesList.filter(s =>
-            s.homePlanetType.includes(planet.planetType) &&
-            s.societalTypes.includes('Civilization')
-        );
-        if (potentialInhabitants.length > 0) {
-            const species = getRandomItem(potentialInhabitants);
-            return [{ ...species, societalType: 'Civilization' }];
+        // Named planets are always civilized
+        requiredSocietalType = 'Civilization';
+    } else if (chance(0.3)) {
+        // Unnamed planets have a 30% chance of being primitive
+        requiredSocietalType = 'Primitive';
+    }
 
-        }
+    // If no societal type is required (e.g., the 30% chance failed), exit early.
+    if (!requiredSocietalType) {
+        return [];
+    }
 
-    } else {
-        // Unnamed planets have a CHANCE to have primitive life.
-        if (chance(0.3)) { // 30% chance for primitives
-            const potentialInhabitants = speciesList.filter(s =>
-                s.homePlanetType.includes(planet.planetType) &&
-                s.societalTypes.includes('Primitive')
-            );
-            if (potentialInhabitants.length > 0) {
-                const species = getRandomItem(potentialInhabitants);
-                return [{ ...species, societalType: 'Primitive' }];
-            }
-        }
+    // Now, run the filter logic once.
+    const potentialInhabitants = speciesList.filter(s =>
+        s.homePlanetType.includes(planet.planetType) &&
+        s.societalTypes.includes(requiredSocietalType)
+    );
+
+    if (potentialInhabitants.length > 0) {
+        const species = getRandomItem(potentialInhabitants);
+        return [{ ...species, societalType: requiredSocietalType }];
     }
 
     return [];
