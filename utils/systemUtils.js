@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import { assignFaction } from './factionUtils.js';
+import { generateFaction } from './factionUtils.js';
 import { generateStarName, getStarDescription } from './starUtils.js';
-import { synthesizeStarSystem } from './synthesisUtils.js';
 
+// Star classification schema
 export const STAR_CLASSES = [
     { type: 'O', color: '#A3BFFA', temp: '>30,000K', size: 10, weight: 0.05 },
     { type: 'B', color: '#BEE3F8', temp: '10,000–30,000K', size: 8, weight: 0.1 },
@@ -14,8 +14,8 @@ export const STAR_CLASSES = [
 ];
 
 /**
- * RENAMED: This is the correct function for creating bare-bones star data.
- * Your other files, like sectorUtils.js, should import this.
+ * Creates the basic "map pin" data for a single star.
+ * Used by the API to generate stars for both the 2D and 3D clients.
  */
 export const createStarData = () => {
     const rand = Math.random();
@@ -31,7 +31,9 @@ export const createStarData = () => {
     }
 
     const name = generateStarName();
-    const faction = assignFaction({ name });
+
+    // --- FIX: Call generateFaction() with no arguments ---
+    const faction = generateFaction();
 
     return {
         id: uuidv4(),
@@ -42,18 +44,8 @@ export const createStarData = () => {
         size: starClass.size,
         description: getStarDescription(starClass.type),
         faction,
-        x: 0, // Coordinates are assigned later in sectorUtils.js
+        x: 0, // Coordinates are assigned by the sector generator
         y: 0,
+        z: 0,
     };
-};
-
-// This function correctly uses the renamed createStarData function now.
-export const generateCompleteStarSystem = () => {
-    // 1. Create a basic star object with core properties
-    const basicStar = createStarData();
-
-    // 2. Pass the basic star to the synthesizer to generate planets, stations, etc.
-    const fullSystem = synthesizeStarSystem(basicStar);
-
-    return fullSystem;
 };

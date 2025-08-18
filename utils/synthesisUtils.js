@@ -157,6 +157,8 @@ export const synthesizePlanetarySystem = (starName, starId) => {
             planet.inhabitants = generateInhabitants(planet);
         }
 
+        
+
         planets.push(planet);
     }
 

@@ -1,5 +1,8 @@
-// src/utils/factionUtils.js
+import { getAllianceForFaction } from './politicsUtils.js';
+import { getRandomItem } from './randomUtils.js';
 
+// --- Faction Database ---
+// This is the source of truth for all possible factions.
 export const factions = [
     {
         "name": "The Solar Accord",
@@ -51,37 +54,33 @@ export const factions = [
     }
 ];
 
-// Assign a faction based on a star's name (or ID)
-export const assignFaction = (starName) => {
-    // 25% chance a system is unaffiliated
+/**
+ * Generates a single, complete faction object, including its alliance affiliation.
+ * This is the primary function that should be used for faction generation.
+ */
+export const generateFaction = () => {
     if (Math.random() < 0.25) return null;
 
-    // Choose a random faction from the codex
-    const factionKeys = Object.keys(factions);
-    const randomFaction = factionKeys[Math.floor(Math.random() * factionKeys.length)];
+    const factionTemplate = getRandomItem(factions);
 
-    return {
-        name: randomFaction,
-        ...factions[randomFaction],
+    const newFaction = {
+        ...factionTemplate,
     };
+
+    // --- MODIFIED: Look up the alliance instead of generating it ---
+    // This ensures the faction's alliance is always the same.
+    newFaction.allianceId = getAllianceForFaction(newFaction.id);
+
+    return newFaction;
 };
-// Get full faction by ID
+
+// --- Helper Functions ---
+
+// Get full faction details by its ID.
 export const getFactionById = (id) => {
     return factions.find(f => f.id === id);
 };
 
-// Get display properties (useful in UI)
+// Get display properties (useful in UI).
 export const getFactionColor = (id) => getFactionById(id)?.color || '#888';
 export const getFactionSymbol = (id) => getFactionById(id)?.symbol || '?';
-
-// Assign factions to all stars in a list
-export const assignFactionsToStars = (stars) => {
-    return stars.map(star => ({
-        ...star,
-        faction: assignFactionToStar(star.name)
-    }));
-};
-
-export function generateFaction() {
-    return factions[Math.floor(Math.random() * factions.length)];
-}

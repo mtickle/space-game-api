@@ -2,6 +2,16 @@ import mongoose from 'mongoose';
 
 // Define schemas for all the nested parts of your data first
 
+const BuildingSchema = new mongoose.Schema({ name: String, type: String }, { _id: false });
+const LayoutSchema = new mongoose.Schema({ theme: String, condition: String, buildings: [BuildingSchema] }, { _id: false });
+
+const SettlementSchema = new mongoose.Schema({
+    name: String,
+    population: Number,
+    layout: LayoutSchema,
+    isCapital: Boolean
+}, { _id: false });
+
 const FactionSchema = new mongoose.Schema({
     name: String,
     id: String,
@@ -9,6 +19,7 @@ const FactionSchema = new mongoose.Schema({
     symbol: String,
     color: String,
     description: String,
+    allianceId: String, // This will link to the alliance this faction belongs to
 }, { _id: false });
 
 const SpaceStationSchema = new mongoose.Schema({
@@ -61,6 +72,21 @@ const MoonSchema = new mongoose.Schema({
     moonSettlements: [mongoose.Schema.Types.Mixed], // Or define a SettlementSchema
 }, { _id: false });
 
+const InhabitantSchema = new mongoose.Schema({
+    speciesId: String,
+    speciesName: String,
+    disposition: String,
+    type: String, // 'Native' or 'Settler'
+    societalType: String, // 'Civilization' or 'Primitive'
+    populationPercentage: Number
+}, { _id: false });
+
+const ResourceSchema = new mongoose.Schema({
+    mineralName: String,
+    elements: [String],
+    unknownElements: [{ symbol: String, name: String }]
+}, { _id: false });
+
 const PlanetSchema = new mongoose.Schema({
     starId: String,
     starName: String,
@@ -75,13 +101,14 @@ const PlanetSchema = new mongoose.Schema({
     hasCivilization: Boolean,
     floraList: [FloraFaunaSchema],
     faunaList: [FloraFaunaSchema],
-    resourceList: [mongoose.Schema.Types.Mixed], // Define a proper schema if needed
+    resourceList: [ResourceSchema], // Define a proper schema if needed
     moons: [MoonSchema],
-    settlements: [mongoose.Schema.Types.Mixed], // Or define a SettlementSchema
+    settlements: [SettlementSchema], // Or define a SettlementSchema
     atmosphere: mongoose.Schema.Types.Mixed,
     economy: mongoose.Schema.Types.Mixed, // Can be an object or null
     industry: mongoose.Schema.Types.Mixed, // Can be an object or null
-    inhabitants: [mongoose.Schema.Types.Mixed] // An array of species objects
+    //inhabitants: [mongoose.Schema.Types.Mixed] // An array of species objects
+    inhabitants: [InhabitantSchema]
 }, { _id: false });
 
 

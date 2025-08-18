@@ -1,4 +1,4 @@
-import { chance, getRandomItem } from './randomUtils.js';
+import { chance, getRandomInt, getRandomItem } from './randomUtils.js';
 
 
 const speciesList = [
@@ -82,32 +82,58 @@ const speciesList = [
  * @returns {Array} An array containing the species object, or an empty array if none.
  */
 export const generateInhabitants = (planet) => {
+    let inhabitants = [];
 
-    let requiredSocietalType = null;
-
-    if (planet.isUniqueName) {
-        // Named planets are always civilized
-        requiredSocietalType = 'Civilization';
-    } else if (chance(0.3)) {
-        // Unnamed planets have a 30% chance of being primitive
-        requiredSocietalType = 'Primitive';
+    // 1. Determine Native Species
+    const potentialNatives = speciesList.filter(s => s.homePlanetType.includes(planet.planetType));
+    let nativeSpecies = null;
+    if (potentialNatives.length > 0 && chance(0.6)) {
+        nativeSpecies = getRandomItem(potentialNatives);
     }
 
-    // If no societal type is required (e.g., the 30% chance failed), exit early.
-    if (!requiredSocietalType) {
-        return [];
+    // 2. Handle based on whether the world is civilized
+    if (planet.hasCivilization) {
+        // If there's a native species that can form a civilization, add it.
+        if (nativeSpecies && nativeSpecies.societalTypes.includes('Civilization')) {
+            inhabitants.push({ ...nativeSpecies, type: 'Native', societalType: 'Civilization' });
+        }
+
+        // Add settler species
+        const settlerSpecies = speciesList.filter(s => s.canSettle && s.speciesId !== nativeSpecies?.speciesId);
+        const numSettlerGroups = getRandomInt(0, 4);
+
+        for (let i = 0; i < numSettlerGroups; i++) {
+            if (settlerSpecies.length === 0 || inhabitants.length >= 5) break;
+            const settler = settlerSpecies.splice(Math.floor(Math.random() * settlerSpecies.length), 1)[0];
+            inhabitants.push({ ...settler, type: 'Settler', societalType: 'Civilization' });
+        }
+    } else {
+        // For uncivilized worlds, only add the native species if it can be primitive.
+        if (nativeSpecies && nativeSpecies.societalTypes.includes('Primitive')) {
+            inhabitants.push({ ...nativeSpecies, type: 'Native', societalType: 'Primitive' });
+        }
     }
 
-    // Now, run the filter logic once.
-    const potentialInhabitants = speciesList.filter(s =>
-        s.homePlanetType.includes(planet.planetType) &&
-        s.societalTypes.includes(requiredSocietalType)
-    );
+    // 3. Calculate Population Percentages
+    if (inhabitants.length > 0) {
+        let weights = inhabitants.map((species) => {
+            // Give native species a higher population weight
+            return species.type === 'Native' ? Math.random() * 50 + 50 : Math.random() * 20 + 5;
+        });
 
-    if (potentialInhabitants.length > 0) {
-        const species = getRandomItem(potentialInhabitants);
-        return [{ ...species, societalType: requiredSocietalType }];
+        const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+        if (totalWeight === 0) return []; // Avoid division by zero
+
+        inhabitants.forEach((species, index) => {
+            species.populationPercentage = Math.round((weights[index] / totalWeight) * 100);
+        });
+
+        // Adjust percentages to ensure they sum to exactly 100
+        const currentTotal = inhabitants.reduce((sum, s) => sum + s.populationPercentage, 0);
+        if (currentTotal !== 100 && inhabitants.length > 0) {
+            inhabitants[0].populationPercentage += 100 - currentTotal;
+        }
     }
 
-    return [];
+    return inhabitants;
 };
