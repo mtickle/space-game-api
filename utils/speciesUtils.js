@@ -1,6 +1,8 @@
 import { chance, getRandomInt, getRandomItem } from './randomUtils.js';
 
 
+// utils/speciesUtils.js
+
 const speciesList = [
     {
         speciesId: 'humanoid-terran',
@@ -9,7 +11,8 @@ const speciesList = [
         disposition: 'Pragmatic and Expansionist',
         homePlanetType: ['Rocky', 'Oceanic'],
         techLevel: 'Advanced',
-        societalTypes: ['Civilization'] // Can only form advanced societies
+        societalTypes: ['Civilization'],
+        canSettle: true // They are colonists
     },
     {
         speciesId: 'aquatic-cygnian',
@@ -18,7 +21,8 @@ const speciesList = [
         disposition: 'Philosophical and Territorial',
         homePlanetType: ['Oceanic'],
         techLevel: 'Biological Mastery',
-        societalTypes: ['Civilization', 'Primitive'] // Can be found as either
+        societalTypes: ['Civilization', 'Primitive'],
+        canSettle: false // Tend to stay on their home worlds
     },
     {
         speciesId: 'silicon-krell',
@@ -27,7 +31,8 @@ const speciesList = [
         disposition: 'Scholarly and Cautious',
         homePlanetType: ['Crystaline', 'Barren'],
         techLevel: 'Post-Singularity',
-        societalTypes: ['Civilization', 'Scattered Enclaves']
+        societalTypes: ['Civilization', 'Scattered Enclaves'],
+        canSettle: true // Their advanced tech allows them to settle harsh worlds
     },
     {
         speciesId: 'synthetic-automata',
@@ -36,7 +41,8 @@ const speciesList = [
         disposition: 'Logical and Inquisitive',
         homePlanetType: ['Artificial', 'Metallic'],
         techLevel: 'Machine Intelligence',
-        societalTypes: ['Civilization']
+        societalTypes: ['Civilization'],
+        canSettle: true // Can establish outposts anywhere
     },
     {
         speciesId: 'avian-avior',
@@ -45,7 +51,8 @@ const speciesList = [
         disposition: 'Artistic and Fiercely Independent',
         homePlanetType: ['Rocky', 'Gas Giant'],
         techLevel: 'Intermediate',
-        societalTypes: ['Civilization', 'Primitive']
+        societalTypes: ['Civilization', 'Primitive'],
+        canSettle: true // Space-faring nomads
     },
     {
         speciesId: 'fungoid-mycelian',
@@ -54,7 +61,8 @@ const speciesList = [
         disposition: 'Collective and Patient',
         homePlanetType: ['Exotic', 'Carbonaceous'],
         techLevel: 'Organic',
-        societalTypes: ['Civilization', 'Primitive', 'Scattered Enclaves']
+        societalTypes: ['Civilization', 'Primitive', 'Scattered Enclaves'],
+        canSettle: false // Intrinsically tied to their home planet
     },
     {
         speciesId: 'ursine-glacialis',
@@ -63,7 +71,8 @@ const speciesList = [
         disposition: 'Stoic and Territorial',
         homePlanetType: ['Ice World'],
         techLevel: 'Primitive',
-        societalTypes: ['Primitive', 'Scattered Enclaves']
+        societalTypes: ['Primitive', 'Scattered Enclaves'],
+        canSettle: false // Not space-faring
     },
     {
         speciesId: 'insectoid-cryo',
@@ -72,9 +81,32 @@ const speciesList = [
         disposition: 'Collective and Industrious',
         homePlanetType: ['Ice World'],
         techLevel: 'Geothermal',
-        societalTypes: ['Civilization', 'Primitive']
+        societalTypes: ['Civilization', 'Primitive'],
+        canSettle: false // Tied to their specific environment
+    },
+    // --- NEW SPECIES FOR COVERAGE ---
+    {
+        speciesId: 'lithovore-igneous',
+        speciesName: 'Igneous Lithovores',
+        description: 'A slow-moving, silicon-based lifeform that consumes minerals for sustenance. They are impervious to extreme heat and pressure.',
+        disposition: 'Patient and Unflinching',
+        homePlanetType: ['Volcanic'],
+        techLevel: 'Geological',
+        societalTypes: ['Primitive', 'Scattered Enclaves'],
+        canSettle: false
+    },
+    {
+        speciesId: 'phasic-anomaly',
+        speciesName: 'Phasic Beings',
+        description: 'Beings of pure energy that thrive in high-radiation environments. Their physical form is unstable and difficult for scanners to resolve.',
+        disposition: 'Enigmatic and Unpredictable',
+        homePlanetType: ['Radiated'],
+        techLevel: 'Exotic',
+        societalTypes: ['Scattered Enclaves'], // They don't build traditional civilizations
+        canSettle: false
     }
 ];
+
 
 /**
  * Generates the sentient inhabitants for a given planet.
@@ -100,7 +132,10 @@ export const generateInhabitants = (planet) => {
 
         // Add settler species
         const settlerSpecies = speciesList.filter(s => s.canSettle && s.speciesId !== nativeSpecies?.speciesId);
-        const numSettlerGroups = getRandomInt(0, 4);
+
+        // --- FIX: Ensure at least one species exists on a civilized world ---
+        const needsPrimaryCivilization = inhabitants.length === 0;
+        const numSettlerGroups = needsPrimaryCivilization ? getRandomInt(1, 4) : getRandomInt(0, 4);
 
         for (let i = 0; i < numSettlerGroups; i++) {
             if (settlerSpecies.length === 0 || inhabitants.length >= 5) break;
