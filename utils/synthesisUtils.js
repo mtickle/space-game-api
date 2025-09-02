@@ -1,5 +1,3 @@
-// utils/synthesisUtils.js
-
 import { v4 as uuidv4 } from 'uuid';
 import { generateAtmosphere } from './atmosphereUtils.js';
 import { generateSettlementLayout } from './buildingUtils.js';
@@ -82,50 +80,48 @@ export const synthesizePlanetarySystem = (starName, starId) => {
             }
         }
 
-        // 1. Decide if this planet will host a civilization. This is the key driver.
-        //const hasCivilization = chance(0.6);
         const hasCivilization = true;
 
-        // 2. The presence of a civilization dictates the name.
         const planetName = generatePlanetName(starName, i, availableUniqueNames, hasCivilization);
         const isUniqueName = !planetName.includes(starName);
         const planetId = uuidv4();
+        const planetSize = Math.floor(Math.random() * 10) + 1;
 
         const planet = {
-
-            //--- Basic planet properties, as in, things already generated.
             starId,
             starName,
             planetId,
             planetName,
             planetType: planetType.type,
             planetColor: planetType.color,
-
-            //--- Things that are calculated.
-            planetSize: Math.floor(Math.random() * 10) + 1,
+            planetSize: planetSize,
             orbitRadius: 20 + i * 15,
-
-            //--- Flags.
             isUniqueName,
             hasCivilization,
-
-            //--- Things being generated right now.
             atmosphere: generateAtmosphere(planetType.type),
             faunaList: generateFauna({ planetType: planetType.type }),
             floraList: generateFlora(planetType.type),
-            moons: generateMoons(starId, planetName, planetId, planetType.type),
+            moons: generateMoons(starId, planetName, planetId, planetType.type, planetSize),
             planetConditions: generateConditions(planetType.type),
             resourceList: generateResources(planetType.type),
-
-            //--- Things we might generate later.
             settlements: [],
             economy: [],
             industry: [],
             inhabitants: [],
-
         };
 
-        // 3. If it has a civilization, generate ALL related components together.
+        // --- NEW: Generate Gravity, Rotational, and Orbital Periods ---
+        let gravityMultiplier = 1.0;
+        if (['Rocky', 'Metallic', 'Artificial'].includes(planet.planetType)) gravityMultiplier = 1.2;
+        if (['Ice World', 'Exotic'].includes(planet.planetType)) gravityMultiplier = 0.8;
+        planet.gravity = parseFloat(((planet.planetSize / 5.0) * gravityMultiplier * (Math.random() * 0.4 + 0.8)).toFixed(2));
+
+        planet.rotationalPeriod = parseFloat((Math.random() * 92 + 8).toFixed(1)); // 8 to 100 hours
+        planet.orbitalPeriod = Math.round(Math.pow(planet.orbitRadius, 1.5) * 0.2);
+        // --- END NEW ---
+
+        console.log(planet)
+
         if (hasCivilization) {
             const numSettlements = Math.floor(Math.random() * 4) + 1;
             const availableSettlementNames = [...settlementNames];
@@ -147,20 +143,17 @@ export const synthesizePlanetarySystem = (starName, starId) => {
                 planet.settlements[capitalIndex].isCapital = true;
             }
 
-            // Economy, industry, AND inhabitants are all generated here.
             planet.economy = generateEconomy();
             planet.industry = generateIndustry();
             planet.inhabitants = generateInhabitants(planet);
 
         } else {
-            // If it's not a civilized world, it might still have primitives.
             planet.inhabitants = generateInhabitants(planet);
         }
-
-        
 
         planets.push(planet);
     }
 
     return planets;
 };
+
