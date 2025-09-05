@@ -100,7 +100,10 @@ export const generateInhabitants = (planet) => {
 
         // Add settler species
         const settlerSpecies = speciesList.filter(s => s.canSettle && s.speciesId !== nativeSpecies?.speciesId);
-        const numSettlerGroups = getRandomInt(0, 4);
+
+        // --- FIX: Ensure at least one species exists on a civilized world ---
+        const needsPrimaryCivilization = inhabitants.length === 0;
+        const numSettlerGroups = needsPrimaryCivilization ? getRandomInt(1, 4) : getRandomInt(0, 4);
 
         for (let i = 0; i < numSettlerGroups; i++) {
             if (settlerSpecies.length === 0 || inhabitants.length >= 5) break;
