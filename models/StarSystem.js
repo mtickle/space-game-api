@@ -108,7 +108,10 @@ const PlanetSchema = new mongoose.Schema({
     economy: mongoose.Schema.Types.Mixed, // Can be an object or null
     industry: mongoose.Schema.Types.Mixed, // Can be an object or null
     //inhabitants: [mongoose.Schema.Types.Mixed] // An array of species objects
-    inhabitants: [InhabitantSchema]
+    inhabitants: [InhabitantSchema],
+    gravity: Number,
+    rotationalPeriod: Number,
+    orbitalPeriod: Number,
 }, { _id: false });
 
 
