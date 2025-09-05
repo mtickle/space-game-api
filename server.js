@@ -14,12 +14,11 @@ import { usersModel } from './models/users.js';
 import { initializeGalacticPolitics } from './utils/politicsUtils.js'; // <-- 1. Import
 import { generateStarsForSector } from './utils/sectorUtils.js';
 import { generateStarsForSector3D } from './utils/sectorUtils3D.js';
+import { saveStarSystemToPg } from './utils/storageUtils.js';
 import { synthesizeStarSystem } from './utils/synthesisUtils.js';
 import { createStarData } from './utils/systemUtils.js';
 
 initializeGalacticPolitics(); //Initialize politics on server start
-
-
 
 // --- Initialize Express App & Database Connection ---
 const app = express();
@@ -222,34 +221,70 @@ app.get('/api/v1/systems/:starId', async (req, res) => {
     }
 });
 
-app.post('/api/v1/systems', authMiddleware.checkKey, async (req, res) => {
+// app.post('/api/v1/systems', authMiddleware.checkKey, async (req, res) => {
 
+//     console.log('Received request to create a new star system');
+
+//     try {
+//         // 1. The basic star data is received in the request body
+//         const basicStarData = req.body;
+
+//         if (!basicStarData || !basicStarData.id) {
+//             return res.status(400).json({ error: 'Basic star data is required.' });
+//         }
+
+//         // 2. Synthesize the full system USING the provided star data
+//         const newFullSystem = synthesizeStarSystem(basicStarData);
+
+//         // 3. Save the new, specific system to the database
+//         //const systemToSave = new StarSystem(newFullSystem);
+//         //const savedSystem = await systemToSave.save();
+
+//         const savedSystem = await StarSystem.create(newFullSystem);
+//         const saveSuccessful = await saveStarSystemToPg(newFullSystem);
+
+//         if (!saveSuccessful) {
+//             // Handle cases where the database save might fail
+//             return res.status(500).json({ error: 'Failed to save system to the database.' });
+//         }
+
+//         res.status(201).json(savedSystem);
+
+//     } catch (error) {
+//         console.error('Error creating new star system:', error);
+//         res.status(500).json({ error: 'Internal server error' });
+//     }
+// });
+
+
+app.post('/api/v1/systems', authMiddleware.checkKey, async (req, res) => {
     console.log('Received request to create a new star system');
 
     try {
-        // 1. The basic star data is received in the request body
         const basicStarData = req.body;
 
         if (!basicStarData || !basicStarData.id) {
             return res.status(400).json({ error: 'Basic star data is required.' });
         }
 
-        // 2. Synthesize the full system USING the provided star data
         const newFullSystem = synthesizeStarSystem(basicStarData);
 
-        // 3. Save the new, specific system to the database
-        //const systemToSave = new StarSystem(newFullSystem);
-        //const savedSystem = await systemToSave.save();
+        // --- REVISED LOG-IC ---
+        // 1. Save the new system ONLY to Postgres.
+        const saveSuccessful = await saveStarSystemToPg(newFullSystem);
 
-        const savedSystem = await StarSystem.create(newFullSystem);
+        if (!saveSuccessful) {
+            // Handle cases where the database save might fail
+            return res.status(500).json({ error: 'Failed to save system to the database.' });
+        }
 
-        res.status(201).json(savedSystem);
+        // 2. Respond with the original, full system data that was generated.
+        res.status(201).json(newFullSystem);
 
     } catch (error) {
         console.error('Error creating new star system:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

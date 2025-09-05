@@ -115,12 +115,9 @@ export const synthesizePlanetarySystem = (starName, starId) => {
         if (['Rocky', 'Metallic', 'Artificial'].includes(planet.planetType)) gravityMultiplier = 1.2;
         if (['Ice World', 'Exotic'].includes(planet.planetType)) gravityMultiplier = 0.8;
         planet.gravity = parseFloat(((planet.planetSize / 5.0) * gravityMultiplier * (Math.random() * 0.4 + 0.8)).toFixed(2));
-
         planet.rotationalPeriod = parseFloat((Math.random() * 92 + 8).toFixed(1)); // 8 to 100 hours
         planet.orbitalPeriod = Math.round(Math.pow(planet.orbitRadius, 1.5) * 0.2);
         // --- END NEW ---
-
-        console.log(planet)
 
         if (hasCivilization) {
             const numSettlements = Math.floor(Math.random() * 4) + 1;
