@@ -3,7 +3,7 @@ import { chance, getRandomInt, getRandomItem } from './randomUtils.js';
 
 // utils/speciesUtils.js
 
-const speciesList = [
+export const speciesList = [
     {
         speciesId: 'humanoid-terran',
         speciesName: 'Terran Descendants',

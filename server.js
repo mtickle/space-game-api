@@ -6,23 +6,22 @@ dotenv.config();
 import cors from 'cors';
 import express from 'express';
 import connectDB from './config/db.js';
-import StarSystem from './models/StarSystem.js';
 
 // Import your models, routes, and middleware
 import authMiddleware from './middleware/auth.js';
 import { usersModel } from './models/users.js';
-import { initializeGalacticPolitics } from './utils/politicsUtils.js'; // <-- 1. Import
+import { initializeGalacticPolitics } from './utils/politicsUtils.js';
 import { generateStarsForSector } from './utils/sectorUtils.js';
 import { generateStarsForSector3D } from './utils/sectorUtils3D.js';
-import { saveStarSystemToPg } from './utils/storageUtils.js';
+import { seedDatabase } from './utils/seedDbs.js';
+import { getStarSystemFromPg, saveBulkStarSystemsToPg, saveStarSystemToPg } from './utils/storageUtils.js';
 import { synthesizeStarSystem } from './utils/synthesisUtils.js';
 import { createStarData } from './utils/systemUtils.js';
 
-initializeGalacticPolitics(); //Initialize politics on server start
-
-// --- Initialize Express App & Database Connection ---
 const app = express();
+initializeGalacticPolitics(); //Initialize politics on server start
 connectDB(); // Connect to MongoDB using your modular function
+seedDatabase();
 
 // --- Core Middleware ---
 app.use(cors());
@@ -117,15 +116,9 @@ app.get('/api/generate10000StarSystems', authMiddleware.checkKey, async (req, re
 
         const systemsToSave = [];
 
-        // 1. Generate 10,000 systems and add them to an array
-        for (let i = 0; i < 10000; i++) {
-            // --- REFACTORED LOGIC ---
-            // Step A: Create the basic "map pin" data for a star.
+        for (let i = 0; i < 1000; i++) {
             const basicStar = createStarData();
-
-            // Step B: Pass the basic star to the synthesizer to build the full system.
             const fullSystem = synthesizeStarSystem(basicStar);
-
             if (fullSystem) {
                 systemsToSave.push(fullSystem);
             }
@@ -135,12 +128,14 @@ app.get('/api/generate10000StarSystems', authMiddleware.checkKey, async (req, re
             return res.status(500).json({ error: 'Failed to generate any systems.' });
         }
 
-        // 2. Use insertMany() to save all systems in a single, efficient database operation
-        await StarSystem.insertMany(systemsToSave);
+        // --- REVISED LOGIC ---
+        // Call the new function to save all systems to Postgres in one transaction.
+        const saveSuccessful = await saveBulkStarSystemsToPg(systemsToSave);
 
-        console.log(`Successfully generated and saved ${systemsToSave.length} star systems.`);
+        if (!saveSuccessful) {
+            return res.status(500).json({ error: 'Failed to save bulk systems to the database.' });
+        }
 
-        // 3. Respond with a success message
         res.status(201).json({
             message: `Successfully generated and saved ${systemsToSave.length} star systems.`
         });
@@ -151,20 +146,63 @@ app.get('/api/generate10000StarSystems', authMiddleware.checkKey, async (req, re
     }
 });
 
+app.get('/api/generate1MillionStarSystems', authMiddleware.checkKey, async (req, res) => {
+    console.log("--- WARNING: Initiating bulk generation of 1,000,000 star systems. This will take a while... ---");
+    try {
+        const TOTAL_SYSTEMS = 1000000;
+        const BATCH_SIZE = 1000; // Process 1,000 systems at a time to manage memory
+        let systemsBatch = [];
+        let totalSaved = 0;
+
+        for (let i = 0; i < TOTAL_SYSTEMS; i++) {
+            // Generate a single, complete star system
+            const basicStar = createStarData();
+            const fullSystem = synthesizeStarSystem(basicStar);
+
+            if (fullSystem) {
+                console.log(`Generated system ${i + 1}: Star ID ${fullSystem.starId}`);
+                systemsBatch.push(fullSystem);
+            }
+
+            // When the batch is full, save it to the database and clear the memory
+            if (systemsBatch.length === BATCH_SIZE) {
+                await saveBulkStarSystemsToPg(systemsBatch);
+                totalSaved += systemsBatch.length;
+                systemsBatch = []; // Reset the batch for the next set
+                console.log(` -> Saved batch. Total systems saved so far: ${totalSaved}`);
+            }
+        }
+
+        // Save any remaining systems in the final, smaller batch
+        if (systemsBatch.length > 0) {
+            await saveBulkStarSystemsToPg(systemsBatch);
+            totalSaved += systemsBatch.length;
+        }
+
+        console.log(`--- Bulk generation complete! Total systems saved: ${totalSaved} ---`);
+        res.status(201).json({
+            message: `Successfully generated and saved ${totalSaved} star systems.`
+        });
+
+    } catch (error) {
+        console.error('Critical error during massive bulk generation:', error);
+        res.status(500).json({ error: 'A critical error occurred during the bulk generation process.' });
+    }
+});
+
 app.get('/api/generateStarSystem', authMiddleware.checkKey, async (req, res) => {
     try {
-        // --- REFACTORED LOGIC ---
-        // 1. Create a basic star object first.
         const basicStar = createStarData();
-
-        // 2. Pass that basic star to the synthesizer to get the full system.
         const fullSystem = synthesizeStarSystem(basicStar);
+        const saveSuccessful = await saveStarSystemToPg(fullSystem);
 
-        // 3. Save the generated star system to MongoDB.
-        const savedSystem = await StarSystem.create(fullSystem);
+        if (!saveSuccessful) {
+            return res.status(500).json({ error: 'Failed to save system to the database.' });
+        }
 
-        // 4. Respond with the saved star system data.
-        res.status(201).json(savedSystem);
+        // --- THE FIX ---
+        // Respond with the generated 'fullSystem' object, not 'savedSystem'.
+        res.status(201).json(fullSystem);
 
     } catch (error) {
         console.error('Error while generating star system:', error);
@@ -172,109 +210,49 @@ app.get('/api/generateStarSystem', authMiddleware.checkKey, async (req, res) => 
     }
 });
 
-// app.get('/api/generateStarSystem', authMiddleware.checkKey, async (req, res) => {
-//     try {
-
-//         //--- Generate a complete star system using the utility function.
-//         const fullSystem = generateCompleteStarSystem();
-
-//         //--- Save the generated star system to MongoDB
-//         const systemToSave = new StarSystem(fullSystem);
-//         const savedSystem = await systemToSave.save();
-
-//         //--- Respond with the saved star system data.
-//         res.status(201).json({ result: 'System created and saved.' });
-
-//     } catch (error) {
-//         console.error('Error while generating star system:', error);
-//         res.status(500).json({ error: 'Internal server error' });
-//     }
-// });
-
-// In server.js
-
-app.get('/api/v1/systems/:starId', async (req, res) => {
-    console.log("--- 🚀 STAR GENERATION ENDPOINT HIT! 🚀 ---");
+app.get('/api/v1/systems/:starId', authMiddleware.checkKey, async (req, res) => {
     try {
         const { starId } = req.params;
-
-        // --- ADD THIS LOG ---
-        // This will show you the exact ID the API is trying to find.
         console.log(`Searching for system with starId: ${starId}`);
 
-        // Find the system in the database using the starId from the URL.
-        const system = await StarSystem.findOne({ starId: starId });
+        // --- REVISED LOGIC ---
+        // Call the new function to get the full system from Postgres.
+        const system = await getStarSystemFromPg(starId);
 
         if (!system) {
-            // This is what's incorrectly happening right now.
-            //console.log(`System not found for ID: ${starId}`);
+            // If the function returns null, the system was not found.
             return res.status(404).json({ message: 'System not found.' });
         }
 
-        // This is what SHOULD happen.
-        // console.log(`System found: ${system.starName}`);
+        // System was found, return it.
         res.status(200).json(system);
 
     } catch (error) {
-        console.error(`Error fetching system by ID:`, error);
+        console.error(`Error in GET /api/v1/systems/:starId endpoint:`, error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-
-// app.post('/api/v1/systems', authMiddleware.checkKey, async (req, res) => {
-
-//     console.log('Received request to create a new star system');
-
-//     try {
-//         // 1. The basic star data is received in the request body
-//         const basicStarData = req.body;
-
-//         if (!basicStarData || !basicStarData.id) {
-//             return res.status(400).json({ error: 'Basic star data is required.' });
-//         }
-
-//         // 2. Synthesize the full system USING the provided star data
-//         const newFullSystem = synthesizeStarSystem(basicStarData);
-
-//         // 3. Save the new, specific system to the database
-//         //const systemToSave = new StarSystem(newFullSystem);
-//         //const savedSystem = await systemToSave.save();
-
-//         const savedSystem = await StarSystem.create(newFullSystem);
-//         const saveSuccessful = await saveStarSystemToPg(newFullSystem);
-
-//         if (!saveSuccessful) {
-//             // Handle cases where the database save might fail
-//             return res.status(500).json({ error: 'Failed to save system to the database.' });
-//         }
-
-//         res.status(201).json(savedSystem);
-
-//     } catch (error) {
-//         console.error('Error creating new star system:', error);
-//         res.status(500).json({ error: 'Internal server error' });
-//     }
-// });
-
 
 app.post('/api/v1/systems', authMiddleware.checkKey, async (req, res) => {
     console.log('Received request to create a new star system');
 
     try {
         const basicStarData = req.body;
+        //const userId = req.user?.id; 
 
         if (!basicStarData || !basicStarData.id) {
             return res.status(400).json({ error: 'Basic star data is required.' });
         }
 
         const newFullSystem = synthesizeStarSystem(basicStarData);
-
-        // --- REVISED LOG-IC ---
-        // 1. Save the new system ONLY to Postgres.
         const saveSuccessful = await saveStarSystemToPg(newFullSystem);
 
-        if (!saveSuccessful) {
-            // Handle cases where the database save might fail
+        if (saveSuccessful) {
+            // --- ADD THIS CALL ---
+            // After the system is saved, log the discovery for the user.
+            //await logUserDiscovery(userId, newFullSystem.starId);
+            console.log(`Star system ${newFullSystem.starId} saved successfully.`);
+        } else {
             return res.status(500).json({ error: 'Failed to save system to the database.' });
         }
 
@@ -286,5 +264,6 @@ app.post('/api/v1/systems', authMiddleware.checkKey, async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
