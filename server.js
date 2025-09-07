@@ -5,7 +5,7 @@ dotenv.config();
 // Import dependencies
 import cors from 'cors';
 import express from 'express';
-import connectDB from './config/db.js';
+import connectMDB from './config/mongodb.js';
 
 // Import your models, routes, and middleware
 import authMiddleware from './middleware/auth.js';
@@ -13,15 +13,14 @@ import { usersModel } from './models/users.js';
 import { initializeGalacticPolitics } from './utils/politicsUtils.js';
 import { generateStarsForSector } from './utils/sectorUtils.js';
 import { generateStarsForSector3D } from './utils/sectorUtils3D.js';
-import { seedDatabase } from './utils/seedDbs.js';
 import { getStarSystemFromPg, saveBulkStarSystemsToPg, saveStarSystemToPg } from './utils/storageUtils.js';
 import { synthesizeStarSystem } from './utils/synthesisUtils.js';
 import { createStarData } from './utils/systemUtils.js';
 
 const app = express();
 initializeGalacticPolitics(); //Initialize politics on server start
-connectDB(); // Connect to MongoDB using your modular function
-seedDatabase();
+connectMDB(); // Connect to MongoDB using your modular function
+//seedDatabase();
 
 // --- Core Middleware ---
 app.use(cors());

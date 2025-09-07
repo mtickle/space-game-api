@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 // Load environment variables from .env file
 dotenv.config(); // <-- Configure it here
 
-const connectDB = async () => {
+const connectMDB = async () => {
     try {
         const mongoUri = process.env.MONGODB_URI;
         if (!mongoUri) {
@@ -20,4 +20,4 @@ const connectDB = async () => {
     }
 };
 
-export default connectDB;
+export default connectMDB;
