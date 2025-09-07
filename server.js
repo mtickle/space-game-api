@@ -189,23 +189,30 @@ app.get('/api/generate1MillionStarSystems', authMiddleware.checkKey, async (req,
     }
 });
 
-app.get('/api/generateStarSystem', authMiddleware.checkKey, async (req, res) => {
+app.get('/api/generateStarSystem', authMiddleware.checkKey, (req, res) => { // Note: no longer async
     try {
         const basicStar = createStarData();
         const fullSystem = synthesizeStarSystem(basicStar);
-        const saveSuccessful = await saveStarSystemToPg(fullSystem);
 
-        if (!saveSuccessful) {
-            return res.status(500).json({ error: 'Failed to save system to the database.' });
-        }
-
-        // --- THE FIX ---
-        // Respond with the generated 'fullSystem' object, not 'savedSystem'.
+        // 1. Immediately send the response to the client.
+        // The user's interface now has the data and feels instantaneous.
         res.status(201).json(fullSystem);
 
+        // 2. "Fire and Forget" the database save.
+        // We call the async save function but don't await its result.
+        // The server will handle this in the background.
+        saveStarSystemToPg(fullSystem).catch(dbError => {
+            // If the save fails, we can't tell the client,
+            // but we MUST log it on the server for debugging.
+            console.error('BACKGROUND SAVE FAILED:', dbError);
+        });
+
     } catch (error) {
-        console.error('Error while generating star system:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('Error during initial system generation:', error);
+        // Only send an error if the generation itself fails, before the response is sent.
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
     }
 });
 
@@ -232,35 +239,53 @@ app.get('/api/v1/systems/:starId', authMiddleware.checkKey, async (req, res) => 
     }
 });
 
-app.post('/api/v1/systems', authMiddleware.checkKey, async (req, res) => {
+app.post('/api/v1/systems', authMiddleware.checkKey, (req, res) => { // No longer async
     console.log('Received request to create a new star system');
 
     try {
         const basicStarData = req.body;
-        //const userId = req.user?.id; 
+        // const userId = req.user?.id; // This would be used in the background save
 
         if (!basicStarData || !basicStarData.id) {
             return res.status(400).json({ error: 'Basic star data is required.' });
         }
 
+        // 1. Synthesize the full system. This is fast.
         const newFullSystem = synthesizeStarSystem(basicStarData);
-        const saveSuccessful = await saveStarSystemToPg(newFullSystem);
 
-        if (saveSuccessful) {
-            // --- ADD THIS CALL ---
-            // After the system is saved, log the discovery for the user.
-            //await logUserDiscovery(userId, newFullSystem.starId);
-            console.log(`Star system ${newFullSystem.starId} saved successfully.`);
-        } else {
-            return res.status(500).json({ error: 'Failed to save system to the database.' });
-        }
-
-        // 2. Respond with the original, full system data that was generated.
+        // 2. Immediately send the response. The UI is now updated and feels instant.
         res.status(201).json(newFullSystem);
 
+        // 3. "Fire and Forget" the database operations.
+        // We define an async function to handle the save and discovery log.
+        const saveInBackground = async () => {
+            try {
+                const saveSuccessful = await saveStarSystemToPg(newFullSystem);
+                if (saveSuccessful) {
+                    // Once the system is saved, you can log the discovery.
+                    // This is where you would uncomment and use the userId.
+                    // await logUserDiscovery(userId, newFullSystem.starId);
+                    console.log(`Background save for ${newFullSystem.starName} successful.`);
+                } else {
+                    // If the primary save fails, we just log it.
+                    console.error(`BACKGROUND SAVE FAILED for system: ${newFullSystem.starName}`);
+                }
+            } catch (dbError) {
+                // This catch is crucial for logging any unexpected errors during the save.
+                console.error('CRITICAL BACKGROUND SAVE FAILED:', dbError);
+            }
+        };
+
+        // We call the function but don't await it. The server moves on
+        // while the save happens in the background.
+        saveInBackground();
+
     } catch (error) {
-        console.error('Error creating new star system:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('Error during initial system synthesis:', error);
+        // This will only catch errors from the synthesis part, before the response is sent.
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Internal server error' });
+        }
     }
 });
 
