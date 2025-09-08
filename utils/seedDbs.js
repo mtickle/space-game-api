@@ -1,5 +1,5 @@
-import pool from '@utils/db.js';
 import { alliances } from './alliancesUtils.js';
+import pool from './db.js';
 import { factions } from './factionUtils.js';
 import { speciesList } from './speciesUtils.js';
 
