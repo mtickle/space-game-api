@@ -1,7 +1,12 @@
+/**
+ * @fileoverview Generates alliance relationships based on the assigned faction.
+ * @module utils/alliancesUtils.js 
+ * @author Mike
+ * @reviewed 2025-10-27 
+ */
+
 import { chance, getRandomItem } from './randomUtils.js';
 
-// --- Alliance Database ---
-// A list of major power blocs that factions can belong to.
 export const alliances = [
     {
         allianceId: 'terran_federation',

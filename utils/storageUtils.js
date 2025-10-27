@@ -2,6 +2,7 @@
 
 // saveStarToLocalStorage.js
 
+import { v4 as uuidv4 } from 'uuid';
 import pool from './db.js';
 
 
@@ -342,81 +343,143 @@ export const saveBulkStarSystemsToPg = async (systemsBatch) => {
     console.log(`Starting bulk save of ${systemsBatch.length} systems to PostgreSQL...`);
     const client = await pool.connect();
 
+    // Define a sub-batch size (number of *rows* per insert)
+    // Keep this reasonably low to avoid parameter limits (e.g., 100-500)
+    const SUB_BATCH_ROW_LIMIT = 100;
+
     try {
         await client.query('BEGIN');
 
-        // --- Prepare data for all tables ---
-        const starValues = [];
-        const planetValues = [];
-        const moonValues = [];
-        const settlementValues = [];
-        const inhabitantValues = [];
+        // Prepare data arrays
+        const allStarValues = [];
+        const allPlanetValues = [];
+        const allMoonValues = [];
+        const allSettlementValues = [];
+        const allInhabitantValues = [];
 
+        // --- Populate data arrays (Ensure robust validation) ---
         for (const system of systemsBatch) {
+            if (!system || typeof system !== 'object' || !system.starId) {
+                console.warn("Skipping invalid system data in bulk save.");
+                continue;
+            }
+            const starZ = system.starZ ?? 0; // Default Z to 0
+
             // Star System Data
-            starValues.push(system.starId, system.starName, system.starX, system.starY, 0, system.starType, system.starTemp, system.starSize, system.starDescription, system.starFaction?.id, JSON.stringify(system.spaceStation));
+            allStarValues.push(
+                system.starId, system.starName, system.starX, system.starY, starZ,
+                system.starType, system.starTemp, system.starSize, system.starDescription,
+                system.starFaction?.id, JSON.stringify(system.spaceStation)
+            );
 
-            for (const planet of system.planets) {
+            const planets = Array.isArray(system.planets) ? system.planets : [];
+            for (const planet of planets) {
+                if (!planet || typeof planet !== 'object' || !planet.planetId) {
+                    console.warn(`Skipping invalid planet data in system ${system.starName}`);
+                    continue;
+                }
                 // Planet Data
-                planetValues.push(planet.planetId, system.starId, planet.planetName, planet.planetType, planet.planetColor, planet.planetSize, planet.gravity, planet.rotationalPeriod, planet.orbitalPeriod, planet.orbitRadius, planet.isUniqueName, planet.hasCivilization, JSON.stringify(planet.planetConditions), JSON.stringify(planet.atmosphere), JSON.stringify(planet.economy), JSON.stringify(planet.industry), JSON.stringify(planet.floraList), JSON.stringify(planet.faunaList), JSON.stringify(planet.resourceList));
+                allPlanetValues.push(
+                    planet.planetId, system.starId, planet.planetName, planet.planetType,
+                    planet.planetColor, planet.planetSize, planet.gravity, planet.rotationalPeriod,
+                    planet.orbitalPeriod, planet.orbitRadius, planet.isUniqueName, planet.hasCivilization,
+                    JSON.stringify(planet.planetConditions), JSON.stringify(planet.atmosphere),
+                    JSON.stringify(planet.economy), JSON.stringify(planet.industry),
+                    JSON.stringify(planet.floraList), JSON.stringify(planet.faunaList),
+                    JSON.stringify(planet.resourceList)
+                );
 
-                // Inhabitant Data
-                if (planet.inhabitants) {
-                    for (const inhabitant of planet.inhabitants) {
-                        inhabitantValues.push(planet.planetId, inhabitant.speciesId, inhabitant.populationPercentage, inhabitant.type, inhabitant.societalType);
+                const inhabitants = Array.isArray(planet.inhabitants) ? planet.inhabitants : [];
+                if (inhabitants.length > 0) {
+                    for (const inhabitant of inhabitants) {
+                        if (inhabitant?.speciesId) { // Basic validation
+                            allInhabitantValues.push(
+                                planet.planetId, inhabitant.speciesId, inhabitant.populationPercentage,
+                                inhabitant.type, inhabitant.societalType
+                            );
+                        }
                     }
                 }
 
-                // Settlement Data
-                if (planet.settlements) {
-                    for (const settlement of planet.settlements) {
-                        settlementValues.push(planet.planetId, settlement.name, settlement.population, !!settlement.isCapital, JSON.stringify(settlement.layout));
+                const settlements = Array.isArray(planet.settlements) ? planet.settlements : [];
+                if (settlements.length > 0) {
+                    for (const settlement of settlements) {
+                        if (settlement?.name) { // Basic validation
+                            const settlementId = uuidv4();
+                            allSettlementValues.push(
+                                settlementId, planet.planetId, settlement.name,
+                                settlement.population, !!settlement.isCapital,
+                                JSON.stringify(settlement.layout)
+                            );
+                        }
                     }
                 }
 
-                // Moon Data
-                if (planet.moons) {
-                    for (const moon of planet.moons) {
-                        moonValues.push(moon.moonId, planet.planetId, moon.moonName, moon.moonType, moon.moonSize, moon.gravity, moon.rotationalPeriod, moon.orbitalPeriod, !!moon.isTidallyLocked, JSON.stringify(moon.moonConditions), JSON.stringify(moon.moonSettlements));
+                const moons = Array.isArray(planet.moons) ? planet.moons : [];
+                if (moons.length > 0) {
+                    for (const moon of moons) {
+                        if (moon?.moonId) { // Basic validation
+                            allMoonValues.push(
+                                moon.moonId, planet.planetId, moon.moonName, moon.moonType,
+                                moon.moonSize, moon.gravity, moon.rotationalPeriod, moon.orbitalPeriod,
+                                !!moon.isTidallyLocked, JSON.stringify(moon.moonConditions),
+                                JSON.stringify(moon.moonSettlements)
+                            );
+                        }
                     }
                 }
             }
         }
 
-        // --- Construct and execute bulk INSERT queries ---
+        // --- Execute bulk INSERT queries in sub-batches ---
 
-        // Stars
-        if (starValues.length > 0) {
-            const starQuery = `INSERT INTO space_game.star_systems (star_id, name, x_coord, y_coord, z_coord, star_type, temperature, size, description, faction_id, station_details) VALUES ${generateValuePlaceholders(starValues, 11)}`;
-            await client.query(starQuery, starValues);
-            // console.log(starQuery)
-        }
+        // Helper function to execute inserts in sub-batches
+        const executeInSubBatches = async (tableName, columns, allValues) => {
+            const numColumns = columns.length;
+            if (numColumns === 0 || allValues.length === 0) {
+                console.log(`  No data or columns for ${tableName}. Skipping.`);
+                return; // Avoid division by zero or unnecessary work
+            }
+            // Ensure values count is a multiple of columns, otherwise something went wrong during population
+            if (allValues.length % numColumns !== 0) {
+                console.error(`  CRITICAL ERROR: Value count (${allValues.length}) is not a multiple of column count (${numColumns}) for ${tableName}. Aborting batch.`);
+                throw new Error(`Data integrity error for table ${tableName}`);
+            }
 
-        // Planets
-        if (planetValues.length > 0) {
-            const planetQuery = `INSERT INTO space_game.planets (planet_id, star_system_id, name, planet_type, color, size, gravity, rotational_period, orbital_period, orbit_radius, is_unique_name, has_civilization, conditions, atmosphere, economy, industry, flora_list, fauna_list, resource_list) VALUES ${generateValuePlaceholders(planetValues, 19)}`;
-            await client.query(planetQuery, planetValues);
-        }
+            const totalRows = allValues.length / numColumns;
+            console.log(`  Preparing to insert ${totalRows} rows into ${tableName} in sub-batches of ${SUB_BATCH_ROW_LIMIT}...`);
 
-        // Inhabitants
-        if (inhabitantValues.length > 0) {
-            const inhabitantQuery = `INSERT INTO space_game.planet_inhabitants (planet_id, species_id, population_percentage, inhabitant_type, societal_type) VALUES ${generateValuePlaceholders(inhabitantValues, 5)}`;
-            await client.query(inhabitantQuery, inhabitantValues);
-        }
+            for (let i = 0; i < totalRows; i += SUB_BATCH_ROW_LIMIT) {
+                const startRow = i;
+                const endRow = Math.min(i + SUB_BATCH_ROW_LIMIT, totalRows);
+                const subBatchValues = allValues.slice(startRow * numColumns, endRow * numColumns);
 
-        // Settlements
-        if (settlementValues.length > 0) {
-            const settlementQuery = `INSERT INTO space_game.settlements (planet_id, name, population, is_capital, layout) VALUES ${generateValuePlaceholders(settlementValues, 5)}`;
-            await client.query(settlementQuery, settlementValues);
-        }
+                if (subBatchValues.length === 0) continue; // Should not happen, but safety check
 
-        // Moons
-        if (moonValues.length > 0) {
-            const moonQuery = `INSERT INTO space_game.moons (moon_id, planet_id, name, moon_type, size, gravity, rotational_period, orbital_period, is_tidally_locked, conditions, settlements_list) VALUES ${generateValuePlaceholders(moonValues, 11)}`;
-            await client.query(moonQuery, moonValues);
-        }
+                // Regenerate placeholders for each sub-batch, starting parameter index from $1
+                const placeholderString = generateValuePlaceholders(subBatchValues, numColumns);
+                if (!placeholderString) {
+                    console.error(`  ERROR: Failed to generate placeholders for sub-batch in ${tableName}. Skipping sub-batch.`);
+                    continue; // Skip this sub-batch if placeholders are invalid
+                }
+
+                const queryText = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES ${placeholderString}`;
+
+                // console.log(`    Executing sub-batch insert for ${tableName} (${subBatchValues.length / numColumns} rows)`); // Verbose logging
+                await client.query(queryText, subBatchValues);
+            }
+            console.log(`  Finished inserting into ${tableName}.`);
+        };
+
+        // --- Call the helper for each table in the correct order ---
+        await executeInSubBatches('space_game.star_systems', ['star_id', 'name', 'x_coord', 'y_coord', 'z_coord', 'star_type', 'temperature', 'size', 'description', 'faction_id', 'station_details'], allStarValues);
+        await executeInSubBatches('space_game.planets', ['planet_id', 'star_system_id', 'name', 'planet_type', 'color', 'size', 'gravity', 'rotational_period', 'orbital_period', 'orbit_radius', 'is_unique_name', 'has_civilization', 'conditions', 'atmosphere', 'economy', 'industry', 'flora_list', 'fauna_list', 'resource_list'], allPlanetValues);
+        await executeInSubBatches('space_game.planet_inhabitants', ['planet_id', 'species_id', 'population_percentage', 'inhabitant_type', 'societal_type'], allInhabitantValues);
+        await executeInSubBatches('space_game.settlements', ['settlement_id', 'planet_id', 'name', 'population', 'is_capital', 'layout'], allSettlementValues);
+        await executeInSubBatches('space_game.moons', ['moon_id', 'planet_id', 'name', 'moon_type', 'size', 'gravity', 'rotational_period', 'orbital_period', 'is_tidally_locked', 'conditions', 'settlements_list'], allMoonValues);
 
         await client.query('COMMIT');
+        console.log(`Bulk save successful for ${systemsBatch.length} systems.`);
         return true;
     } catch (error) {
         await client.query('ROLLBACK');
@@ -428,16 +491,25 @@ export const saveBulkStarSystemsToPg = async (systemsBatch) => {
 };
 
 
-function generateValuePlaceholders(values, columns) {
+function generateValuePlaceholders(subBatchValues, columns) {
     const rows = [];
-    let i = 0;
-    while (i < values.length) {
+    if (columns <= 0 || !Array.isArray(subBatchValues) || subBatchValues.length === 0) return '';
+
+    // Validate that the batch size is a multiple of columns
+    if (subBatchValues.length % columns !== 0) {
+        console.error(`Sub-batch value length (${subBatchValues.length}) is not a multiple of column count (${columns}).`);
+        return ''; // Return empty or throw, indicating a problem
+    }
+
+    const numRows = subBatchValues.length / columns;
+
+    for (let i = 0; i < numRows; i++) {
         const placeholders = [];
         for (let j = 0; j < columns; j++) {
-            placeholders.push(`$${i + j + 1}`);
+            // Parameter index restarts from 1 for each sub-batch
+            placeholders.push(`$${i * columns + j + 1}`);
         }
         rows.push(`(${placeholders.join(', ')})`);
-        i += columns;
     }
     return rows.join(', ');
 }

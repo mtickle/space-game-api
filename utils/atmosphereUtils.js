@@ -1,6 +1,10 @@
-// atmosphereUtils.js
+/**
+ * @fileoverview Generates random atmospheric conditions
+ * @module utils/atmosphereUtils.js 
+ * @author Mike
+ * @reviewed 2025-10-27 
+ */
 
-// Define different profiles of atmospheric compositions based on planet type.
 const atmosphereProfiles = {
     'Rocky': [
         { elements: [{ name: 'Nitrogen', percent: 0.78 }, { name: 'Oxygen', percent: 0.21 }, { name: 'Argon', percent: 0.01 }] }, // Earth-like
@@ -44,6 +48,12 @@ const atmosphereProfiles = {
     ]
 };
 
+/**
+ * Generates an atmospheric composition for a planet based on its type.
+ * Selects a predefined profile matching the planet type or provides a default.
+ * @param {string} planetType - The type of the planet (e.g., 'Rocky', 'Gas Giant').
+ * @returns {object} An object containing an array of atmospheric elements with names and percentages. Example: { elements: [{ name: 'Nitrogen', percent: 0.78 }, { name: 'Oxygen', percent: 0.21 }] }
+ */
 export function generateAtmosphere(planetType) {
     const profile = atmosphereProfiles[planetType];
     if (profile) {

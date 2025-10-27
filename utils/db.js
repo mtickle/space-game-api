@@ -15,8 +15,8 @@ const pool = new pg.Pool({
     password: process.env.DATABASE_PASSWORD,
     port: process.env.DATABASE_PORT,
     ssl: {
-        require: true,
-        rejectUnauthorized: true,
+        require: false,
+        rejectUnauthorized: false,
         ca: fs.readFileSync("ca.pem").toString(),
     },
     max: 20,

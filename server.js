@@ -217,6 +217,63 @@ app.get('/api/generateStarSystem', authMiddleware.checkKey, (req, res) => { // N
     }
 });
 
+app.post('/api/generateBulkSystems', authMiddleware.checkKey, async (req, res) => {
+    // Check if req.body exists before accessing its properties
+    const count = req.body?.count ? parseInt(req.body.count, 10) : 250000; // Default count
+    const batchSize = req.body?.batchSize ? parseInt(req.body.batchSize, 10) : 1000; // Default batch size
+
+    if (isNaN(count) || count <= 0 || isNaN(batchSize) || batchSize <= 0) {
+        return res.status(400).json({ error: 'Invalid count or batchSize. Must be positive numbers.' });
+    }
+
+    console.log(`Received request to generate ${count} systems in batches of ${batchSize}...`);
+
+    // Immediately send a 202 Accepted response
+    res.status(202).json({ message: `Accepted: Starting generation of ${count} systems.` });
+
+    // --- Perform the generation and saving in the background ---
+    const generateAndSave = async () => {
+        try {
+            console.log("Starting bulk generation process...");
+            let totalSaved = 0;
+            let systemsBatch = [];
+
+            for (let i = 0; i < count; i++) {
+                const basicStar = createStarData();
+                const fullSystem = synthesizeStarSystem(basicStar);
+                if (fullSystem) {
+                    systemsBatch.push(fullSystem);
+                }
+
+                // When the batch is full, save it and clear the array
+                if (systemsBatch.length >= batchSize || i === count - 1) {
+                    if (systemsBatch.length > 0) {
+                        console.log(`Attempting to save batch of ${systemsBatch.length} systems (Total processed: ${i + 1})...`);
+                        const saveSuccessful = await saveBulkStarSystemsToPg(systemsBatch);
+                        if (saveSuccessful) {
+                            totalSaved += systemsBatch.length;
+                            console.log(`Successfully saved batch. Total saved so far: ${totalSaved}`);
+                        } else {
+                            console.error(`Failed to save batch ending at index ${i}. Stopping bulk generation.`);
+                            // Optionally, break or implement retry logic
+                            break;
+                        }
+                        systemsBatch = []; // Reset the batch
+                    }
+                }
+            }
+            console.log(`Bulk generation finished. Total systems saved: ${totalSaved}`);
+
+        } catch (error) {
+            console.error('CRITICAL ERROR during bulk generation background process:', error);
+        }
+    };
+
+    // Run the generation process without awaiting it
+    generateAndSave();
+
+});
+
 app.get('/api/v1/systems/:starId', authMiddleware.checkKey, async (req, res) => {
     try {
         const { starId } = req.params;
