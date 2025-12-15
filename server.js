@@ -50,6 +50,8 @@ app.get('/api/about', (req, res) => {
     });
 });
 
+
+
 app.post('/api/register', async (req, res) => {
     try {
         const { username } = req.body;
