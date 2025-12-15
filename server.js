@@ -9,6 +9,7 @@ import express from 'express';
 
 // Import your models, routes, and middleware
 import authMiddleware from './middleware/auth.js';
+import db from './utils/db.js';
 import { initializeGalacticPolitics } from './utils/politicsUtils.js';
 import { generateStarsForSector } from './utils/sectorUtils.js';
 import { generateStarsForSector3D } from './utils/sectorUtils3D.js';
@@ -279,7 +280,7 @@ app.get('/api/v1/stats', authMiddleware.checkKey, async (req, res) => {
         // Run count queries in parallel for better performance
         const [userRes, starRes] = await Promise.all([
             db.query('SELECT count(*) FROM space_game.users'),
-            db.query('SELECT count(*) FROM space_game.stars')
+            db.query('SELECT count(*) FROM space_game.star_systems')
         ]);
 
         const stats = {
