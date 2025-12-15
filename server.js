@@ -5,11 +5,10 @@ dotenv.config();
 // Import dependencies
 import cors from 'cors';
 import express from 'express';
-import connectMDB from './config/mongodb.js';
+
 
 // Import your models, routes, and middleware
 import authMiddleware from './middleware/auth.js';
-import { usersModel } from './models/users.js';
 import { initializeGalacticPolitics } from './utils/politicsUtils.js';
 import { generateStarsForSector } from './utils/sectorUtils.js';
 import { generateStarsForSector3D } from './utils/sectorUtils3D.js';
@@ -20,7 +19,6 @@ import { createStarData } from './utils/systemUtils.js';
 
 const app = express();
 initializeGalacticPolitics(); //Initialize politics on server start
-connectMDB(); // Connect to MongoDB using your modular function
 seedDatabase();
 
 // --- Core Middleware ---
@@ -45,10 +43,10 @@ app.get('/api/about', (req, res) => {
         name: "Space Game Procedural Generation API",
         version: "1.0.0",
         description: "A backend service providing procedurally generated star systems, planets, and moons.",
-        author: "Your Name/Team",
+        author: "Mike Tickle",
         status: "Operational",
         authentication: "API Key (x-api-key header)",
-        database: "MongoDB"
+        database: "PostgreSQL"
     });
 });
 
@@ -116,7 +114,7 @@ app.get('/api/generate10000StarSystems', authMiddleware.checkKey, async (req, re
 
         const systemsToSave = [];
 
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 5000; i++) {
             const basicStar = createStarData();
             const fullSystem = synthesizeStarSystem(basicStar);
             if (fullSystem) {
@@ -274,6 +272,26 @@ app.post('/api/generateBulkSystems', authMiddleware.checkKey, async (req, res) =
 
 });
 
+app.get('/api/v1/stats', authMiddleware.checkKey, async (req, res) => {
+    try {
+        // Run count queries in parallel for better performance
+        const [userRes, starRes] = await Promise.all([
+            db.query('SELECT count(*) FROM space_game.users'),
+            db.query('SELECT count(*) FROM space_game.stars')
+        ]);
+
+        const stats = {
+            userCount: parseInt(userRes.rows[0].count, 10),
+            starCount: parseInt(starRes.rows[0].count, 10)
+        };
+
+        res.status(200).json(stats);
+    } catch (error) {
+        console.error("Error getting database stats:", error);
+        res.status(500).json({ error: "Failed to fetch database statistics" });
+    }
+});
+
 app.get('/api/v1/systems/:starId', authMiddleware.checkKey, async (req, res) => {
     try {
         const { starId } = req.params;
@@ -285,7 +303,8 @@ app.get('/api/v1/systems/:starId', authMiddleware.checkKey, async (req, res) => 
 
         if (!system) {
             // If the function returns null, the system was not found.
-            return res.status(404).json({ message: 'System not found.' });
+            return res.status(404).json({ error: 'System not found, but that is okay, we just havent generated yet.' });
+            //return res.status(200).json(null);
         }
 
         // System was found, return it.
@@ -346,6 +365,8 @@ app.post('/api/v1/systems', authMiddleware.checkKey, (req, res) => { // No longe
         }
     }
 });
+
+
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

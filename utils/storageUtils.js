@@ -490,6 +490,26 @@ export const saveBulkStarSystemsToPg = async (systemsBatch) => {
     }
 };
 
+export const getDatabaseStats = async () => {
+    const client = await pool.connect();
+    try {
+        // Run counts in parallel for speed
+        const [systemsRes, planetsRes] = await Promise.all([
+            client.query('SELECT COUNT(*) FROM space_game.star_systems'),
+            client.query('SELECT COUNT(*) FROM space_game.planets')
+        ]);
+
+        return {
+            totalSystems: parseInt(systemsRes.rows[0].count, 10).toLocaleString(),
+            totalPlanets: parseInt(planetsRes.rows[0].count, 10).toLocaleString()
+        };
+    } catch (error) {
+        console.error('Error fetching database stats:', error);
+        return { totalSystems: "Error", totalPlanets: "Error" };
+    } finally {
+        client.release();
+    }
+};
 
 function generateValuePlaceholders(subBatchValues, columns) {
     const rows = [];
