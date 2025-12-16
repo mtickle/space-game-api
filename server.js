@@ -51,8 +51,6 @@ app.get('/api/about', (req, res) => {
     });
 });
 
-
-
 app.post('/api/register', async (req, res) => {
     try {
         const { username } = req.body;
@@ -278,13 +276,13 @@ app.post('/api/generateBulkSystems', authMiddleware.checkKey, async (req, res) =
 app.get('/api/v1/stats', authMiddleware.checkKey, async (req, res) => {
     try {
         // Run count queries in parallel for better performance
-        const [userRes, starRes] = await Promise.all([
-            db.query('SELECT count(*) FROM space_game.users'),
+        const [planetRes, starRes] = await Promise.all([
+            db.query('SELECT count(*) FROM space_game.planets'),
             db.query('SELECT count(*) FROM space_game.star_systems')
         ]);
 
         const stats = {
-            userCount: parseInt(userRes.rows[0].count, 10),
+            planetCount: parseInt(planetRes.rows[0].count, 10),
             starCount: parseInt(starRes.rows[0].count, 10)
         };
 
