@@ -4,6 +4,7 @@ import { chance, getRandomInt, getRandomItem } from './randomUtils.js';
 // utils/speciesUtils.js
 
 export const speciesList = [
+    // Original entries (unchanged)
     {
         speciesId: 'humanoid-terran',
         speciesName: 'Terran Descendants',
@@ -84,7 +85,6 @@ export const speciesList = [
         societalTypes: ['Civilization', 'Primitive'],
         canSettle: false // Tied to their specific environment
     },
-    // --- NEW SPECIES FOR COVERAGE ---
     {
         speciesId: 'lithovore-igneous',
         speciesName: 'Igneous Lithovores',
@@ -104,6 +104,136 @@ export const speciesList = [
         techLevel: 'Exotic',
         societalTypes: ['Scattered Enclaves'], // They don't build traditional civilizations
         canSettle: false
+    },
+
+    // --- Greatly Expanded Additions ---
+
+    // Mammalian / warm-blooded archetypes
+    {
+        speciesId: 'mammalian-predator',
+        speciesName: 'Vorathian Apex Hunters',
+        description: 'Pack-oriented carnivores with keen senses and powerful builds. They value strength, loyalty, and ritualistic hunts.',
+        disposition: 'Honorable and Militaristic',
+        homePlanetType: ['Savanna', 'Arid'],
+        techLevel: 'Intermediate',
+        societalTypes: ['Civilization', 'Tribal Clans'],
+        canSettle: true // Aggressive colonizers
+    },
+    {
+        speciesId: 'reptilian-imperial',
+        speciesName: 'Saurian Dominion',
+        description: 'Cold-blooded reptilians with hierarchical castes and ancient warrior traditions. They build vast pyramid-cities and conquer relentlessly.',
+        disposition: 'Authoritarian and Expansionist',
+        homePlanetType: ['Volcanic', 'Desert'],
+        techLevel: 'Advanced',
+        societalTypes: ['Civilization', 'Empire'],
+        canSettle: true
+    },
+
+    // Plant / sessile life
+    {
+        speciesId: 'plantoid-symbiont',
+        speciesName: 'Verdant Symbiotes',
+        description: 'Mobile plant-animal hybrids that form symbiotic relationships with lesser species. They photosynthesize and spread vast living megastructures.',
+        disposition: 'Harmonious and Communal',
+        homePlanetType: ['Tropical', 'Gaia / Biosphere Rich'],
+        techLevel: 'Biological Mastery',
+        societalTypes: ['Civilization', 'Hive Network'],
+        canSettle: true // Terraform via biomass
+    },
+
+    // Arthropod / hive variants
+    {
+        speciesId: 'arthropoid-swarm',
+        speciesName: 'Zorath Swarm',
+        description: 'Relentless hive-minded arthropods driven by consumption and adaptation. They strip worlds bare and evolve rapidly.',
+        disposition: 'Devouring and Adaptive',
+        homePlanetType: ['Carbonaceous', 'Exotic'],
+        techLevel: 'Organic Evolution',
+        societalTypes: ['Hive Mind'],
+        canSettle: true // Invasive colonizers
+    },
+
+    // Exotic / non-traditional
+    {
+        speciesId: 'gaseous-nomad',
+        speciesName: 'Nebulons',
+        description: 'Floating, plasma-based entities that drift through gas giant atmospheres. They manipulate magnetic fields and communicate via auroras.',
+        disposition: 'Elusive and Mystical',
+        homePlanetType: ['Gas Giant', 'Storm Giant'],
+        techLevel: 'Exotic',
+        societalTypes: ['Scattered Enclaves', 'Nomadic Fleet'],
+        canSettle: false // Atmosphere-bound
+    },
+    {
+        speciesId: 'amoeboid-shifter',
+        speciesName: 'Morphic Amoebae',
+        description: 'Shapeshifting protoplasmic beings capable of mimicking other lifeforms. They infiltrate and observe.',
+        disposition: 'Curious and Deceptive',
+        homePlanetType: ['Oceanic', 'Subterranean / Subsurface Ocean'],
+        techLevel: 'Adaptive',
+        societalTypes: ['Infiltration Cells'],
+        canSettle: true // Via mimicry
+    },
+
+    // Advanced / precursor-like
+    {
+        speciesId: 'precursor-relic',
+        speciesName: 'Eldari Remnant',
+        description: 'Ancient, long-lived beings who retreated into stasis after a cataclysm. They possess forgotten technologies and view younger races as children.',
+        disposition: 'Isolationist and Condescending',
+        homePlanetType: ['Relic / Ruined', 'Diamond Planet'],
+        techLevel: 'Precursor',
+        societalTypes: ['Fallen Empire', 'Enclaves'],
+        canSettle: false // Dormant
+    },
+
+    // Nomadic / fleet-based
+    {
+        speciesId: 'nomadic-voidborn',
+        speciesName: 'Void Wanderers',
+        description: 'Spacefaring crustacean-like beings born aboard generation ships. They never settle planets, living eternally in mobile habitats.',
+        disposition: 'Exploratory and Detached',
+        homePlanetType: ['Rogue Planet', 'Shattered / Fragmented'],
+        techLevel: 'Intermediate',
+        societalTypes: ['Nomadic Fleet'],
+        canSettle: false
+    },
+
+    // Aggressive / conquest-focused
+    {
+        speciesId: 'berserker-mech',
+        speciesName: 'Kragthar Berserkers',
+        description: 'Cybernetically enhanced mammalian warriors obsessed with glorious combat. They raid and conquer for honor and resources.',
+        disposition: 'Aggressive and Glory-Seeking',
+        homePlanetType: ['Metallic', 'Barren'],
+        techLevel: 'Cybernetic',
+        societalTypes: ['Warrior Clans'],
+        canSettle: true // Raid-settlers
+    },
+
+    // Peaceful / trader
+    {
+        speciesId: 'cephalopod-merchant',
+        speciesName: 'Tentacled Traders',
+        description: 'Highly intelligent, multi-limbed cephalopods renowned for cunning deals and vast trade networks. They avoid conflict through economics.',
+        disposition: 'Mercantile and Opportunistic',
+        homePlanetType: ['Oceanic', 'Tropical'],
+        techLevel: 'Advanced',
+        societalTypes: ['Trade Guilds', 'Civilization'],
+        canSettle: true // Commercial outposts
+    },
+
+    // Eldritch / horror
+    {
+        speciesId: 'eldritch-abyss',
+        speciesName: 'Abyssal Whisperers',
+        description: 'Multidimensional entities that corrupt minds and reality. Contact drives most species insane.',
+        disposition: 'Malevolent and Insidious',
+        homePlanetType: ['Exotic', 'Radiated'],
+        techLevel: 'Beyond Comprehension',
+        societalTypes: ['Cult Enclaves'],
+        canSettle: false // Infects rather than settles
     }
 ];
 
