@@ -78,6 +78,7 @@ app.get('/api/protected_data', authMiddleware.checkKey, (req, res) => {
     res.status(200).json({ message: 'You accessed protected data!', data: 'This is top-secret galaxy information.' });
 });
 
+
 app.get('/api/generateStars', authMiddleware.checkKey, async (req, res) => {
 
     const { sectorX, sectorY } = req.query;
