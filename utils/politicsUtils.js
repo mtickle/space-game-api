@@ -1,5 +1,6 @@
-import { alliances, assignFactionToAlliance } from './alliancesUtils.js';
+import { assignFactionToAlliance } from './alliancesUtils.js';
 import { factions } from './factionUtils.js';
+import { alliances } from './libraries/alliances.js';
 
 // This object will hold the persistent political state of the galaxy.
 const galacticState = {
