@@ -1,19 +1,8 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { getRandomConditions } from './conditionUtils.js';
-import { uniquePlanetNames } from './namingUtils.js';
-
-
-
-const moonTypes = [
-    'Rocky', 'Icy', 'Volcanic', 'Desolate', 'Oceanic', 'Cratered', 'Frozen', 'Metallic', 'Carbonaceous',
-    'Silicate', 'Iron-Rich', 'Sulfuric', 'Nitrogen-Ice', 'Methane-Lake', 'Sub-Surface Ocean',
-    'Tidally Locked', 'Captured Asteroid', 'Retrograde', 'Trojan', 'Irregular', 'Shepherd',
-    'Co-orbital', 'Ringed', 'Dusty', 'Hollow', 'Artificial', 'Ruined', 'Protoplanet', 'Gas-Dwarf',
-    'Chondritic', 'Basaltic', 'Obsidian', 'Crystal', 'Geode', 'Radioactive', 'Magnetic',
-    'Phosphorescent', 'Glass', 'Sponge', 'Fractal', 'Plasma-Scarred', 'Time-Dilated', 'Dimensional',
-    'Ghost', 'Mirage', 'Sentient', 'Hive', 'Spore', 'Cybernetic', 'Junkyard'
-];
+import { moonTypes } from './libraries/moons.js';
+import { planetNames } from './libraries/planets.js';
 
 const namedMoonProbability = 0.6; // 20% chance a moon gets a unique name
 let moonNameIndex = 0;
@@ -31,9 +20,9 @@ export function generateMoons(starId, planetName, planetId, planetType) {
 
     const moons = [];
     for (let i = 0; i < numMoons; i++) {
-        const isNamed = Math.random() < namedMoonProbability && moonNameIndex < uniquePlanetNames.length;
+        const isNamed = Math.random() < namedMoonProbability && moonNameIndex < planetNames.length;
         const moonName = isNamed
-            ? uniquePlanetNames[moonNameIndex++]
+            ? planetNames[moonNameIndex++]
             : `${planetName} ${toRoman(i + 1)}`;
 
         const moonType = moonTypes[Math.floor(Math.random() * moonTypes.length)];

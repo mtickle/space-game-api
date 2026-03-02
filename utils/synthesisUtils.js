@@ -8,7 +8,9 @@ import { generateFauna } from './faunaUtils.js';
 import { generateFlora } from './floraUtils.js';
 import { generateIndustry } from './industryUtils.js';
 import { generateMoons } from './moonUtils.js';
-import { planetTypes, settlementNames, uniquePlanetNames } from './namingUtils.js';
+//import { planetTypes, settlementNames, planetNames } from './namingUtils.js';
+import { planetNames, planetTypes } from './libraries/planets.js';
+import { settlementNames } from './libraries/settlements.js';
 import { chance } from './randomUtils.js';
 import { generateResources } from './resourceUtils.js';
 import { generateInhabitants } from './speciesUtils.js';
@@ -66,7 +68,7 @@ export function synthesizeStarSystem(star) {
 export const synthesizePlanetarySystem = (starName, starId) => {
     const numPlanets = Math.floor(Math.random() * 5) + 2;
     const planets = [];
-    const availableUniqueNames = [...uniquePlanetNames];
+    const availableUniqueNames = [...planetNames];
 
     for (let i = 0; i < numPlanets; i++) {
         const rand = Math.random();

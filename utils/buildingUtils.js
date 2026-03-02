@@ -1,5 +1,5 @@
 import { buildingBlueprints } from './libraries/buildingBlueprints.js';
-import { settlementThemes } from './libraries/settlementThemes.js';
+import { settlementThemes } from './libraries/settlements.js';
 import { getRandomItem } from './randomUtils.js';
 
 /**
