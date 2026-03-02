@@ -43,20 +43,10 @@ import { chance, getRandomInt, getRandomItem } from './randomUtils.js';
 // };
 
 function generateFloraName() {
-    // const prefixes = ['Zor', 'Xan', 'Blor', 'Neh', 'Tri', 'Lum', 'Vel', 'Quar', 'Thy', 'Irr'];
-    // const middles = ['ro', 'li', 'ka', 'zu', 'mi', 'the', 'pha', 'chi'];
-    // const suffixes = ['plant', 'weed', 'root', 'vine', 'stem', 'blossom', 'bud', 'tree'];
     return `${getRandomItem(prefixes)}${getRandomItem(middles)}${getRandomItem(suffixes)}`;
 }
 
 function getFloraNote(type, appearance) {
-    // const jokes = [
-    //     `Avoid picking the ${type.toLowerCase()} unless you want a rash shaped like your regrets.`,
-    //     `This ${appearance} specimen once tried to unionize with nearby fungi.`,
-    //     `Known to scream when plucked. Local chefs recommend earplugs.`,
-    //     `Its pollen causes mild euphoria and uncontrollable dance moves.`,
-    //     `Harvest with caution: last botanist grew a second shadow.`
-    // ];
     return getRandomItem(jokes);
 }
 
