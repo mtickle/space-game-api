@@ -62,7 +62,7 @@ The engine handles macro-level astrophysics down to micro-level ecology and civi
 ## 📖 Example Output
 
 A tiny glimpse into what a single generated planet might look like:
-
+```json
 {
   "name": "Kaelith Prime",
   "type": "Oceanic",
@@ -90,7 +90,7 @@ A tiny glimpse into what a single generated planet might look like:
     }
   ]
 }
-
+```
 ---
 
 ## 🤝 Contributing
