@@ -5,7 +5,8 @@ dotenv.config();
 // Import dependencies
 import cors from 'cors';
 import express from 'express';
-
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './utils/swaggerConfig.js';
 
 // Import your models, routes, and middleware
 import authMiddleware from './middleware/auth.js';
@@ -39,6 +40,21 @@ const createSeed = (str1, str2) => {
 };
 
 // --- API Endpoints ---
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+/**
+ * @swagger
+ * /api/about:
+ *   get:
+ *     summary: API Information
+ *     description: Returns basic information about the Space Game API, version, and status.
+ *     tags: [General]
+ *     responses:
+ *       200:
+ *         description: A JSON object containing API details.
+ */
+
 app.get('/api/about', (req, res) => {
     res.status(200).json({
         name: "Space Game Procedural Generation API",
@@ -273,6 +289,18 @@ app.post('/api/generateBulkSystems', authMiddleware.checkKey, async (req, res) =
     generateAndSave();
 
 });
+
+/**
+ * @swagger
+ * /api/v1/stats:
+ *   get:
+ *     summary: API Stats
+ *     description: Returns stats regarding the number of star systems and planets.
+ *     tags: [General]
+ *     responses:
+ *       200:
+ *         description: Returns stats regarding the number of star systems and planets.
+ */
 
 app.get('/api/v1/stats', authMiddleware.checkKey, async (req, res) => {
     try {
