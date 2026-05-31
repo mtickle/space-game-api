@@ -1,4 +1,4 @@
-import { mineralPools } from './libraries/minerals.js';
+import { elementSymbols, mineralPools } from './libraries/minerals.js';
 import { chance, getRandomInt, getRandomItem } from './randomUtils.js';
 
 /**

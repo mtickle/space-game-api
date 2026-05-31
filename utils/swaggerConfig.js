@@ -24,19 +24,23 @@ const options = {
                 description: 'Production Server (Render)',
             }
         ],
+        components: {
+            securitySchemes: {
+                ApiKeyAuth: {
+                    type: 'apiKey',
+                    in: 'header',
+                    name: 'x-api-key', // Make sure this matches what your authMiddleware expects!
+                    description: 'Enter your API key to access protected endpoints.',
+                },
+            },
+        },
+        security: [
+            { ApiKeyAuth: [] }
+        ],
     },
     // Tells Swagger where to find your comments. 
     // It will scan server.js and any .js file in the routes folder.
-    apis: ['./routes/*.js', './server.js'], components: {
-        securitySchemes: {
-            ApiKeyAuth: {
-                type: 'apiKey',
-                in: 'header',
-                name: 'x-api-key', // Make sure this matches what your authMiddleware expects!
-                description: 'Enter your API key to access protected endpoints.',
-            },
-        },
-    },
+    apis: ['./routes/*.js', './server.js'],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
