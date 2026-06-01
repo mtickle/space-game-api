@@ -171,8 +171,12 @@ export const getStarSystemFromPg = async (starId) => {
         // 1. Get the core star system data
         const systemResult = await client.query('SELECT * FROM space_game.star_systems WHERE star_id = $1', [starId]);
         if (systemResult.rowCount === 0) {
+            console.log(`Star system: ${starId} not found.`);
             return null; // System not found
+
         }
+
+        console.log(`Star system: ${starId} found.`);
         const systemData = systemResult.rows[0];
 
         // 2. Get all planets for this system
@@ -251,6 +255,7 @@ export const getStarSystemFromPg = async (starId) => {
             planets: planetsData
         };
 
+        console.log(`Returning system data for ${fullSystem.starId} as ${fullSystem.starName}`);
         return fullSystem;
 
     } catch (error) {

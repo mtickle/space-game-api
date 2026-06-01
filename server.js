@@ -322,9 +322,13 @@ app.get('/api/v1/stats', authMiddleware.checkKey, async (req, res) => {
     }
 });
 
+
+//--- This creates a new system, via a click in the interface
 app.get('/api/v1/systems/:starId', authMiddleware.checkKey, async (req, res) => {
+
     try {
         const { starId } = req.params;
+        console.log("-----------------------------------------------------------------")
         console.log(`Searching for system with starId: ${starId}`);
 
         // --- REVISED LOGIC ---
@@ -333,12 +337,13 @@ app.get('/api/v1/systems/:starId', authMiddleware.checkKey, async (req, res) => 
 
         if (!system) {
             // If the function returns null, the system was not found.
-            return res.status(404).json({ error: 'System not found, but that is okay, we just havent generated yet.' });
-            //return res.status(200).json(null);
+            //return res.status(404).json({ error: 'System not found, but that is okay, we just havent generated yet.' });
+            return res.status(200).json(null);
         }
 
         // System was found, return it.
-        res.status(200).json(system);
+        //res.status(200).json(system);
+        res.status(200).json({ ...system, isNewDiscovery: false });
 
     } catch (error) {
         console.error(`Error in GET /api/v1/systems/:starId endpoint:`, error);
@@ -361,7 +366,8 @@ app.post('/api/v1/systems', authMiddleware.checkKey, (req, res) => { // No longe
         const newFullSystem = synthesizeStarSystem(basicStarData);
 
         // 2. Immediately send the response. The UI is now updated and feels instant.
-        res.status(201).json(newFullSystem);
+        //res.status(201).json(newFullSystem);
+        res.status(201).json({ ...newFullSystem, isNewDiscovery: true });
 
         // 3. "Fire and Forget" the database operations.
         // We define an async function to handle the save and discovery log.
@@ -373,9 +379,11 @@ app.post('/api/v1/systems', authMiddleware.checkKey, (req, res) => { // No longe
                     // This is where you would uncomment and use the userId.
                     // await logUserDiscovery(userId, newFullSystem.starId);
                     console.log(`Background save for ${newFullSystem.starName} successful.`);
+                    console.log("-----------------------------------------------------------------")
                 } else {
                     // If the primary save fails, we just log it.
                     console.error(`BACKGROUND SAVE FAILED for system: ${newFullSystem.starName}`);
+                    console.log("-----------------------------------------------------------------")
                 }
             } catch (dbError) {
                 // This catch is crucial for logging any unexpected errors during the save.
