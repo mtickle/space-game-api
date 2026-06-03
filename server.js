@@ -94,9 +94,31 @@ app.get('/api/protected_data', authMiddleware.checkKey, (req, res) => {
     res.status(200).json({ message: 'You accessed protected data!', data: 'This is top-secret galaxy information.' });
 });
 
-
+/**
+ * @swagger
+ * /api/generateStars:
+ *   get:
+ *     summary: Generate Stars
+ *     description: Generates stars for a specific sector.
+ *     tags: [Stars]
+ *     parameters:
+ *       - in: query
+ *         name: sectorX
+ *         required: true
+ *         description: The X coordinate of the sector.
+ *         default: 0
+ *       - in: query
+ *         name: sectorY
+ *         required: true
+ *         description: The Y coordinate of the sector.
+ *         default: 0
+ *     responses:
+ *       200:
+ *         description: A JSON object containing list of stars with basic details.
+ */
 app.get('/api/generateStars', authMiddleware.checkKey, async (req, res) => {
 
+    console.log("Generating stars for sector...");
     const { sectorX, sectorY } = req.query;
 
     if (sectorX === undefined || sectorY === undefined) {
@@ -109,102 +131,6 @@ app.get('/api/generateStars', authMiddleware.checkKey, async (req, res) => {
     res.status(200).json(stars);
 });
 
-app.get('/api/generateStars3d', authMiddleware.checkKey, async (req, res) => {
-    // Destructure all three coordinates from the query
-    const { sectorX, sectorY, sectorZ } = req.query;
-
-    // Validate that all three coordinates are provided
-    if (sectorX === undefined || sectorY === undefined || sectorZ === undefined) {
-        return res.status(400).json({
-            error: 'All three sector coordinates (sectorX, sectorY, sectorZ) are required.'
-        });
-    }
-
-    // Call the dedicated 3D generation function
-    const stars = generateStarsForSector3D(sectorX, sectorY, sectorZ);
-
-    res.status(200).json(stars);
-});
-
-app.get('/api/generate10000StarSystems', authMiddleware.checkKey, async (req, res) => {
-    try {
-        console.log("Starting bulk generation of 10,000 star systems...");
-
-        const systemsToSave = [];
-
-        for (let i = 0; i < 5000; i++) {
-            const basicStar = createStarData();
-            const fullSystem = synthesizeStarSystem(basicStar);
-            if (fullSystem) {
-                systemsToSave.push(fullSystem);
-            }
-        }
-
-        if (systemsToSave.length === 0) {
-            return res.status(500).json({ error: 'Failed to generate any systems.' });
-        }
-
-        // --- REVISED LOGIC ---
-        // Call the new function to save all systems to Postgres in one transaction.
-        const saveSuccessful = await saveBulkStarSystemsToPg(systemsToSave);
-
-        if (!saveSuccessful) {
-            return res.status(500).json({ error: 'Failed to save bulk systems to the database.' });
-        }
-
-        res.status(201).json({
-            message: `Successfully generated and saved ${systemsToSave.length} star systems.`
-        });
-
-    } catch (error) {
-        console.error('Error during bulk star system generation:', error);
-        res.status(500).json({ error: 'Internal server error during bulk generation.' });
-    }
-});
-
-app.get('/api/generate1MillionStarSystems', authMiddleware.checkKey, async (req, res) => {
-    console.log("--- WARNING: Initiating bulk generation of 1,000,000 star systems. This will take a while... ---");
-    try {
-        const TOTAL_SYSTEMS = 1000000;
-        const BATCH_SIZE = 1000; // Process 1,000 systems at a time to manage memory
-        let systemsBatch = [];
-        let totalSaved = 0;
-
-        for (let i = 0; i < TOTAL_SYSTEMS; i++) {
-            // Generate a single, complete star system
-            const basicStar = createStarData();
-            const fullSystem = synthesizeStarSystem(basicStar);
-
-            if (fullSystem) {
-                console.log(`Generated system ${i + 1}: Star ID ${fullSystem.starId}`);
-                systemsBatch.push(fullSystem);
-            }
-
-            // When the batch is full, save it to the database and clear the memory
-            if (systemsBatch.length === BATCH_SIZE) {
-                await saveBulkStarSystemsToPg(systemsBatch);
-                totalSaved += systemsBatch.length;
-                systemsBatch = []; // Reset the batch for the next set
-                console.log(` -> Saved batch. Total systems saved so far: ${totalSaved}`);
-            }
-        }
-
-        // Save any remaining systems in the final, smaller batch
-        if (systemsBatch.length > 0) {
-            await saveBulkStarSystemsToPg(systemsBatch);
-            totalSaved += systemsBatch.length;
-        }
-
-        console.log(`--- Bulk generation complete! Total systems saved: ${totalSaved} ---`);
-        res.status(201).json({
-            message: `Successfully generated and saved ${totalSaved} star systems.`
-        });
-
-    } catch (error) {
-        console.error('Critical error during massive bulk generation:', error);
-        res.status(500).json({ error: 'A critical error occurred during the bulk generation process.' });
-    }
-});
 
 app.get('/api/generateStarSystem', authMiddleware.checkKey, (req, res) => { // Note: no longer async
     try {
@@ -322,8 +248,24 @@ app.get('/api/v1/stats', authMiddleware.checkKey, async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/v1/systems/:starId:
+ *   get:
+ *     summary: Get Star System by ID
+ *     description: Retrieves a star system by its unique ID, after it has been selected in the interface.
+ *     tags: [Stars]
+ *     parameters:
+ *       - in: path
+ *         name: starId
+ *         required: true
+ *         description: The unique ID of the star system.
+ *         default: "8fa2cd95-61e6-4560-9b88-1eec2eace2c1"
+ *     responses:
+ *       200:
+ *         description: Retrieves the star system details in JSON format.
+ */
 
-//--- This creates a new system, via a click in the interface
 app.get('/api/v1/systems/:starId', authMiddleware.checkKey, async (req, res) => {
 
     try {
@@ -404,6 +346,103 @@ app.post('/api/v1/systems', authMiddleware.checkKey, (req, res) => { // No longe
     }
 });
 
+// Potentially deprecated paths
+app.get('/api/generateStars3d', authMiddleware.checkKey, async (req, res) => {
+    // Destructure all three coordinates from the query
+    const { sectorX, sectorY, sectorZ } = req.query;
+
+    // Validate that all three coordinates are provided
+    if (sectorX === undefined || sectorY === undefined || sectorZ === undefined) {
+        return res.status(400).json({
+            error: 'All three sector coordinates (sectorX, sectorY, sectorZ) are required.'
+        });
+    }
+
+    // Call the dedicated 3D generation function
+    const stars = generateStarsForSector3D(sectorX, sectorY, sectorZ);
+
+    res.status(200).json(stars);
+});
+
+app.get('/api/generate10000StarSystems', authMiddleware.checkKey, async (req, res) => {
+    try {
+        console.log("Starting bulk generation of 10,000 star systems...");
+
+        const systemsToSave = [];
+
+        for (let i = 0; i < 5000; i++) {
+            const basicStar = createStarData();
+            const fullSystem = synthesizeStarSystem(basicStar);
+            if (fullSystem) {
+                systemsToSave.push(fullSystem);
+            }
+        }
+
+        if (systemsToSave.length === 0) {
+            return res.status(500).json({ error: 'Failed to generate any systems.' });
+        }
+
+        // --- REVISED LOGIC ---
+        // Call the new function to save all systems to Postgres in one transaction.
+        const saveSuccessful = await saveBulkStarSystemsToPg(systemsToSave);
+
+        if (!saveSuccessful) {
+            return res.status(500).json({ error: 'Failed to save bulk systems to the database.' });
+        }
+
+        res.status(201).json({
+            message: `Successfully generated and saved ${systemsToSave.length} star systems.`
+        });
+
+    } catch (error) {
+        console.error('Error during bulk star system generation:', error);
+        res.status(500).json({ error: 'Internal server error during bulk generation.' });
+    }
+});
+
+app.get('/api/generate1MillionStarSystems', authMiddleware.checkKey, async (req, res) => {
+    console.log("--- WARNING: Initiating bulk generation of 1,000,000 star systems. This will take a while... ---");
+    try {
+        const TOTAL_SYSTEMS = 1000000;
+        const BATCH_SIZE = 1000; // Process 1,000 systems at a time to manage memory
+        let systemsBatch = [];
+        let totalSaved = 0;
+
+        for (let i = 0; i < TOTAL_SYSTEMS; i++) {
+            // Generate a single, complete star system
+            const basicStar = createStarData();
+            const fullSystem = synthesizeStarSystem(basicStar);
+
+            if (fullSystem) {
+                console.log(`Generated system ${i + 1}: Star ID ${fullSystem.starId}`);
+                systemsBatch.push(fullSystem);
+            }
+
+            // When the batch is full, save it to the database and clear the memory
+            if (systemsBatch.length === BATCH_SIZE) {
+                await saveBulkStarSystemsToPg(systemsBatch);
+                totalSaved += systemsBatch.length;
+                systemsBatch = []; // Reset the batch for the next set
+                console.log(` -> Saved batch. Total systems saved so far: ${totalSaved}`);
+            }
+        }
+
+        // Save any remaining systems in the final, smaller batch
+        if (systemsBatch.length > 0) {
+            await saveBulkStarSystemsToPg(systemsBatch);
+            totalSaved += systemsBatch.length;
+        }
+
+        console.log(`--- Bulk generation complete! Total systems saved: ${totalSaved} ---`);
+        res.status(201).json({
+            message: `Successfully generated and saved ${totalSaved} star systems.`
+        });
+
+    } catch (error) {
+        console.error('Critical error during massive bulk generation:', error);
+        res.status(500).json({ error: 'A critical error occurred during the bulk generation process.' });
+    }
+});
 
 
 const PORT = process.env.PORT || 3001;
