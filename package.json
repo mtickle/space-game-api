@@ -5,13 +5,14 @@
   "description": "A proc-gen star map explorer built with React &amp; Canvas. Dive into an endless, procedurally generated galaxy with unique star systems, planets, and moons. 🌌",
   "main": "index.js",
   "scripts": {
-    "dev": "dotenvx run -- node --watch ./server.js",
-    "start": "dotenvx run -- node ./server.js"
+    "dev": "npx @dotenvx/dotenvx run -- node --watch ./server.js",
+    "start": "npx @dotenvx/dotenvx run -- node ./server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@dotenvx/dotenvx": "^2.21.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
@@ -39,5 +40,10 @@
     "@babel/register": "^7.27.1",
     "jest": "^30.0.5",
     "nodemon": "^3.1.10"
+  },
+  "allowScripts": {
+    "@scarf/scarf@1.4.0": true,
+    "core-js@3.45.0": true,
+    "unrs-resolver@1.11.1": true
   }
 }
