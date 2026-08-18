@@ -25,8 +25,8 @@ router.get('/systems', async (req, res) => {
     try {
         const { page, limit, offset } = getPagination(req.query);
 
-        const query = 'SELECT * FROM space_game.star_systems LIMIT $1 OFFSET $2';
-        const countQuery = 'SELECT count(*) FROM space_game.star_systems';
+        const query = 'SELECT name as system_Name, star_type, description as system_desc, station_name, station_type, faction_name, total_planets, total_moons, total_settlements, * FROM space_game.vw_star_systems_extended LIMIT $1 OFFSET $2';
+        const countQuery = 'SELECT count(*) FROM space_game.vw_star_systems_extended';
 
         const [result, countResult] = await Promise.all([
             db.query(query, [limit, offset]),

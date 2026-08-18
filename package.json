@@ -5,8 +5,8 @@
   "description": "A proc-gen star map explorer built with React &amp; Canvas. Dive into an endless, procedurally generated galaxy with unique star systems, planets, and moons. 🌌",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon",
-    "test": "jest"
+    "dev": "dotenvx run -- node --watch ./server.js",
+    "start": "dotenvx run -- node ./server.js"
   },
   "keywords": [],
   "author": "",

@@ -11,6 +11,7 @@ import { swaggerSpec } from './utils/swaggerConfig.js';
 // Import Routers
 import catalogRoutes from './routes/catalogRoutes.js';
 import systemRoutes from './routes/systemRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 // Import utilities
 import { initializeGalacticPolitics } from './utils/politicsUtils.js';
@@ -54,7 +55,8 @@ app.get('/api/about', (req, res) => {
 // --- Mount Routers ---
 // The routers handle their own prefixes now!
 app.use('/api/v1/catalog', catalogRoutes);
-app.use('/api', systemRoutes);
+app.use('/api/v1/systems', systemRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
