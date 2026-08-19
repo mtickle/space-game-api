@@ -53,6 +53,8 @@ app.get('/api/about', (req, res) => {
 });
 
 // --- Mount Routers ---
+// Legacy mount for older interfaces
+app.use('/api', systemRoutes);
 // The routers handle their own prefixes now!
 app.use('/api/v1/catalog', catalogRoutes);
 app.use('/api/v1/systems', systemRoutes);

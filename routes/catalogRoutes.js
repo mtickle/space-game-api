@@ -57,13 +57,13 @@ router.get('/planets', async (req, res) => {
         let query, countQuery, params, countParams;
 
         if (systemId) {
-            query = 'SELECT * FROM space_game.planets WHERE system_id = $1 LIMIT $2 OFFSET $3';
-            countQuery = 'SELECT count(*) FROM space_game.planets WHERE system_id = $1';
+            query = 'SELECT * FROM space_game.vw_planets_extended WHERE system_id = $1 LIMIT $2 OFFSET $3';
+            countQuery = 'SELECT count(*) FROM space_game.vw_planets_extended WHERE system_id = $1';
             params = [systemId, limit, offset];
             countParams = [systemId];
         } else {
-            query = 'SELECT * FROM space_game.planets LIMIT $1 OFFSET $2';
-            countQuery = 'SELECT count(*) FROM space_game.planets';
+            query = 'SELECT * FROM space_game.vw_planets_extended LIMIT $1 OFFSET $2';
+            countQuery = 'SELECT count(*) FROM space_game.vw_planets_extended';
             params = [limit, offset];
             countParams = [];
         }
