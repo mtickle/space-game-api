@@ -18,8 +18,8 @@ router.get('/protected_data', authMiddleware.checkKey, (req, res) => {
 // SECTOR GENERATION
 // ==========================================
 
-router.get('/v1/sectors/stars', authMiddleware.checkKey, async (req, res) => {
-    console.log("Generating stars for sector...");
+router.get('/generateStars', authMiddleware.checkKey, async (req, res) => {
+    //console.log("Generating stars for sector...");
     const { sectorX, sectorY } = req.query;
 
     if (sectorX === undefined || sectorY === undefined) {
@@ -30,7 +30,7 @@ router.get('/v1/sectors/stars', authMiddleware.checkKey, async (req, res) => {
     res.status(200).json(stars);
 });
 
-router.get('/v1/sectors/stars3d', authMiddleware.checkKey, async (req, res) => {
+router.get('/generateStars3d', authMiddleware.checkKey, async (req, res) => {
     const { sectorX, sectorY, sectorZ } = req.query;
 
     if (sectorX === undefined || sectorY === undefined || sectorZ === undefined) {
