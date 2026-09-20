@@ -97,13 +97,13 @@ router.get('/moons', async (req, res) => {
         let query, countQuery, params, countParams;
 
         if (planetId) {
-            query = 'SELECT * FROM space_game.moons WHERE planet_id = $1 LIMIT $2 OFFSET $3';
-            countQuery = 'SELECT count(*) FROM space_game.moons WHERE planet_id = $1';
+            query = 'SELECT * FROM space_game.vw_moons_extended WHERE planet_id = $1 LIMIT $2 OFFSET $3';
+            countQuery = 'SELECT count(*) FROM space_game.vw_moons_extended WHERE planet_id = $1';
             params = [planetId, limit, offset];
             countParams = [planetId];
         } else {
-            query = 'SELECT * FROM space_game.moons LIMIT $1 OFFSET $2';
-            countQuery = 'SELECT count(*) FROM space_game.moons';
+            query = 'SELECT * FROM space_game.vw_moons_extended LIMIT $1 OFFSET $2';
+            countQuery = 'SELECT count(*) FROM space_game.vw_moons_extended';
             params = [limit, offset];
             countParams = [];
         }
@@ -137,13 +137,13 @@ router.get('/settlements', async (req, res) => {
         let query, countQuery, params, countParams;
 
         if (planetId) {
-            query = 'SELECT * FROM space_game.settlements WHERE planet_id = $1 LIMIT $2 OFFSET $3';
-            countQuery = 'SELECT count(*) FROM space_game.settlements WHERE planet_id = $1';
+            query = 'SELECT * FROM space_game.vw_settlements_extended WHERE planet_id = $1 LIMIT $2 OFFSET $3';
+            countQuery = 'SELECT count(*) FROM space_game.vw_settlements_extended WHERE planet_id = $1';
             params = [planetId, limit, offset];
             countParams = [planetId];
         } else {
-            query = 'SELECT * FROM space_game.settlements LIMIT $1 OFFSET $2';
-            countQuery = 'SELECT count(*) FROM space_game.settlements';
+            query = 'SELECT * FROM space_game.vw_settlements_extended LIMIT $1 OFFSET $2';
+            countQuery = 'SELECT count(*) FROM space_game.vw_settlements_extended';
             params = [limit, offset];
             countParams = [];
         }
