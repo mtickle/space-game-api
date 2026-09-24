@@ -33,11 +33,13 @@ export function synthesizeStarSystem(star) {
         console.warn('[Synthesis] Invalid star object:', star);
         return null;
     }
+    // Generate planets for the star
     const planets = synthesizePlanetarySystem(star.name, star.id);
     if (!planets || !Array.isArray(planets)) {
         console.warn('[Synthesis] Failed to generate planets for star:', star.name);
         return null;
     }
+
     const catalogedFlora = planets.flatMap(p => p.floraList || []);
     const catalogedFauna = planets.flatMap(p => p.faunaList || []);
     const { type, temp, description } = generateFullStarProfile();

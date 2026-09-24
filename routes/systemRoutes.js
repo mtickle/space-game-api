@@ -72,6 +72,8 @@ router.get('/v1/systems/:starId', authMiddleware.checkKey, async (req, res) => {
 });
 
 router.post('/v1/systems', authMiddleware.checkKey, (req, res) => {
+    // This endpoint is called when a player clicks on a star that doesn't exist in the database yet. 
+    // It generates the full system data and saves it in the background.
     console.log('Received request to create a new star system');
     try {
         const basicStarData = req.body;
