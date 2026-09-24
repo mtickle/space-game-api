@@ -16,10 +16,12 @@ router.get('/protected_data', authMiddleware.checkKey, (req, res) => {
 
 // ==========================================
 // SECTOR GENERATION
+// This is generating stars for a given sector, not the full system data, as the player moves the mouse around the galaxy map. 
+// The full system data is generated when the player clicks on a star.
 // ==========================================
 
 router.get('/generateStars', authMiddleware.checkKey, async (req, res) => {
-    //console.log("Generating stars for sector...");
+
     const { sectorX, sectorY } = req.query;
 
     if (sectorX === undefined || sectorY === undefined) {
@@ -45,15 +47,19 @@ router.get('/generateStars3d', authMiddleware.checkKey, async (req, res) => {
 // SYSTEM OPERATIONS (Single)
 // ==========================================
 
+// A star system is generated when the player clicks on a star. This endpoint checks if the system already 
+// exists in the database, and if not, generates it and saves it in the background.
 router.get('/v1/systems/:starId', authMiddleware.checkKey, async (req, res) => {
     try {
         const { starId } = req.params;
         console.log("-----------------------------------------------------------------")
+        console.log(`Congratulations! You've discovered a new star system with ID: ${starId}`);
         console.log(`Searching for system with starId: ${starId}`);
 
         const system = await getStarSystemFromPg(starId);
 
         if (!system) {
+            console.log(`System with starId: ${starId} not found in database. Generating new system...`);
             // FIXED: Now properly returns a 404 so the React UI knows to generate it!
             return res.status(404).json(null);
         }

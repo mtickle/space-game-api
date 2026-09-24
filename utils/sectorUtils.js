@@ -23,6 +23,8 @@ export const generateStarsForSector = (sectorX, sectorY) => {
     const seed = (parseInt(sectorX) * 10000) + parseInt(sectorY);
     const rng = mulberry32(seed);
 
+    console.log(`Generating stars for sector (${sectorX}, ${sectorY}) with seed ${seed}...`);
+
     // 2. Use the seeded RNG to determine how many stars are in this sector
     const minStars = 2;
     const maxStars = 8;
@@ -31,12 +33,14 @@ export const generateStarsForSector = (sectorX, sectorY) => {
     const stars = [];
     for (let i = 0; i < starCount; i++) {
         // 3. Create the basic star data
+        console.log(`Creating star ${i + 1} of ${starCount} for sector (${sectorX}, ${sectorY}) with seed ${seed} ...`);
         const star = createStarData();
 
         // 4. Use the same seeded RNG to place the star within the sector boundaries
         star.x = sectorX * SECTOR_SIZE + rng() * SECTOR_SIZE;
         star.y = sectorY * SECTOR_SIZE + rng() * SECTOR_SIZE;
 
+        // 5. Add the star to the array
         stars.push(star);
     }
 

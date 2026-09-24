@@ -10,8 +10,11 @@ import { generateStarName, getStarDescription } from './starUtils.js';
 export const createStarData = () => {
     const rand = Math.random();
     let cumulative = 0;
+
+    //starClasses is an array of star class objects, each with a weight property. We want to select a star class based on the weights.
     let starClass = starClasses[starClasses.length - 1];
 
+    // Select a star class based on the weights
     for (const c of starClasses) {
         cumulative += c.weight;
         if (rand < cumulative) {
@@ -20,11 +23,13 @@ export const createStarData = () => {
         }
     }
 
+    // Generate a unique name for the star
     const name = generateStarName();
 
-    // --- FIX: Call generateFaction() with no arguments ---
+    // Generate a faction for the star
     const faction = generateFaction();
 
+    // Return the basic star data
     return {
         id: uuidv4(),
         name,

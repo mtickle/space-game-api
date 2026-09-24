@@ -3,6 +3,7 @@
 import { starDescriptions, starPrefixes, starSuffixes, starTemperatures, starTypes } from "./libraries/stars.js";
 import { getRandomItem } from './randomUtils.js';
 
+// Generate a star name by combining a random prefix and suffix
 export const generateStarName = () => {
     return `${getRandomItem(starPrefixes)}-${getRandomItem(starSuffixes)}`;
 };

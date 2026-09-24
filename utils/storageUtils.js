@@ -163,6 +163,7 @@ export const logUserDiscovery = async (userId, starId) => {
     }
 };
 
+// Try to retrieve a star system from PostgreSQL by its ID
 export const getStarSystemFromPg = async (starId) => {
     const client = await pool.connect();
     console.log(`Querying PostgreSQL for star system: ${starId}`);
@@ -291,6 +292,7 @@ export const saveStarSystemToPg = async (systemData) => {
                 atmosphere, economy, industry, floraList, faunaList, resourceList,
                 moons, settlements, inhabitants
             } = planet;
+            console.log(` - Saving planet ${planetName} of star system ${starName} to PostgreSQL...`);
 
             await client.query(
                 `INSERT INTO space_game.planets (planet_id, star_system_id, name, planet_type, color, size, gravity, rotational_period, orbital_period, orbit_radius, is_unique_name, has_civilization, conditions, atmosphere, economy, industry, flora_list, fauna_list, resource_list)
@@ -300,6 +302,7 @@ export const saveStarSystemToPg = async (systemData) => {
 
             if (inhabitants && inhabitants.length > 0) {
                 for (const inhabitant of inhabitants) {
+                    console.log(` -- Saving inhabitant species ${inhabitant.speciesId} for planet ${planetName}...`);
                     await client.query(
                         `INSERT INTO space_game.planet_inhabitants (planet_id, species_id, population_percentage, inhabitant_type, societal_type)
              VALUES ($1, $2, $3, $4, $5)`,
@@ -310,6 +313,7 @@ export const saveStarSystemToPg = async (systemData) => {
 
             if (settlements && settlements.length > 0) {
                 for (const settlement of settlements) {
+                    console.log(` -- Saving settlement ${settlement.name} for planet ${planetName}...`);
                     await client.query(
                         `INSERT INTO space_game.settlements (settlement_id, planet_id, name, population, is_capital, layout)
              VALUES (gen_random_uuid(), $1, $2, $3, $4, $5)`,
@@ -320,6 +324,7 @@ export const saveStarSystemToPg = async (systemData) => {
 
             if (moons && moons.length > 0) {
                 for (const moon of moons) {
+                    console.log(` -- Saving moon ${moon.moonName} for planet ${planetName}...`);
                     await client.query(
                         `INSERT INTO space_game.moons (moon_id, planet_id, name, moon_type, size, gravity, rotational_period, orbital_period, is_tidally_locked, conditions, settlements_list)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
